@@ -5,6 +5,11 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
       timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
 
   datasource:
     url: jdbc:mysql://prod-db-host:3306/alert_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -37,5 +42,5 @@ jwt:
 logging:
   level:
     root: INFO
-    com.yourcompany.alertservice: INFO
+    com.smooth.alert_service: INFO
     org.springframework.web: WARN

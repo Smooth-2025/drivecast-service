@@ -19,27 +19,15 @@ public class VicinityUserFinder {
         this.redisTemplate = redisTemplate;
     }
 
-    public List<String> findNearbyUsers(AlertEvent event) {
-        var typeOpt = EventType.from(event.type());
-        if (typeOpt.isEmpty()) {
-            throw new IllegalArgumentException("Unsupported event type: " + event.type());
-        }
-
-        int radius = typeOpt.get().getRadiusMeters();
-        if (radius == 0) return List.of();
-
-        if (event.latitude() == null || event.longitude() == null) {
-            return List.of();
-        }
-
-        String key = "location:" + event.timestamp();
+    public List<String> findUsersAround(double lat, double lon, String key, double radiusMeters, String excludeUserId) {
+        if (radiusMeters == 0) return List.of();
 
         GeoOperations<String, String> geoOps = redisTemplate.opsForGeo();
         GeoResults<RedisGeoCommands.GeoLocation<String>> results =
                 geoOps.radius(key,
                         new Circle(
-                                new Point(event.longitude(), event.latitude()),
-                                new Distance(radius)
+                                new Point(lon, lat),
+                                new Distance(radiusMeters)
                         ));
 
         if (results == null) return List.of();
@@ -47,7 +35,7 @@ public class VicinityUserFinder {
         return results.getContent().stream()
                 .map(GeoResult::getContent)
                 .map(RedisGeoCommands.GeoLocation::getName)
-                .filter(name -> !name.equals(event.userId()))
+                .filter(name -> !name.equals(excludeUserId))
                 .toList();
     }
 }

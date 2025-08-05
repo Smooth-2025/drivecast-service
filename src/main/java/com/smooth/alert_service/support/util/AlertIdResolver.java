@@ -11,6 +11,9 @@ public class AlertIdResolver {
         return switch (event.type()) {
             case "accident" -> Optional.ofNullable(event.accidentId());
             case "obstacle" -> Optional.of("obstacle-" + UUID.randomUUID().toString());
+            case "pothole" -> Optional.of("pothole-" + UUID.randomUUID().toString());
+            case "start" -> Optional.of("start-" + event.userId() + "-" + event.timestamp());
+            case "end" -> Optional.of("end-" + event.userId() + "-" + event.timestamp());
             default -> Optional.empty();
         };
     }

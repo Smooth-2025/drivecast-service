@@ -20,7 +20,7 @@ public class AlertCacheService {
     public boolean isAlreadySent(String alertId, String userId) {
         try {
             String key = buildKey(alertId, userId);
-            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            return redisTemplate.hasKey(key);
         } catch (Exception e) {
             log.error("Redis 조회 실패: alertId={}, userId={}", alertId, userId, e);
             return false;

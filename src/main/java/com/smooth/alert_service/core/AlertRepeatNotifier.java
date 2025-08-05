@@ -26,6 +26,7 @@ public class AlertRepeatNotifier {
     private final VicinityUserFinder vicinityUserFinder;
     private final AlertCacheService alertCacheService;
     private final LatestLocationKeyFinder latestLocationKeyFinder;
+    private final AlertSender alertSender;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(
             2,
@@ -57,18 +58,29 @@ public class AlertRepeatNotifier {
             String initialKey = "location:" + event.timestamp();
             log.info("초기 알림 조회 시작: alertId={}, key={}", alertId, initialKey);
 
-            List<String> nearbyUsers = vicinityUserFinder.findUsersAround(
+            // OBSTACLE의 경우 본인 제외, ACCIDENT의 경우 본인 포함
+            String excludeUserId = "obstacle".equals(event.type()) ? event.userId() : null;
+
+            List<String> targetUsers = vicinityUserFinder.findUsersAround(
                     event.latitude(),
                     event.longitude(),
                     initialKey,
                     radius,
-                    event.userId()
+                    excludeUserId
             );
 
-            for (String userId : nearbyUsers) {
+            for (String userId : targetUsers) {
                 if (alertCacheService.isAlreadySent(alertId, userId)) continue;
 
-                log.info("초기 알림 전송 예정: alertId={}, userId={}", alertId, userId);
+                AlertMessageMapper.map(event, userId).ifPresent(msg -> {
+                    alertSender.sendToUser(userId, msg);
+
+                    boolean isSelf = event.userId() != null && event.userId().equals(userId);
+                    String msgType = isSelf ? "내사고" : ("obstacle".equals(event.type()) ? "장애물" : "반경내사고");
+                    log.info("초기 알림 전송 완료: type={}, userId={}, msgType={}",
+                            event.type(), userId, msgType);
+                });
+
                 alertCacheService.markAsSent(alertId, userId);
             }
         } catch (Exception e) {
@@ -92,6 +104,7 @@ public class AlertRepeatNotifier {
                     return;
                 }
 
+                // 반복 알림에서는 항상 본인 제외 (새 진입자만 대상)
                 List<String> nearbyUsers = vicinityUserFinder.findUsersAround(
                         event.latitude(),
                         event.longitude(),
@@ -103,14 +116,19 @@ public class AlertRepeatNotifier {
                 for (String userId : nearbyUsers) {
                     if (alertCacheService.isAlreadySent(alertId, userId)) continue;
 
-                    log.info("반복 알림 전송 예정: alertId={}, userId={}", alertId, userId);
+                    AlertMessageMapper.map(event, userId).ifPresent(msg -> {
+                        alertSender.sendToUser(userId, msg);
+                        log.info("반복 알림 전송 완료: type={}, userId={} (새 진입자)",
+                                event.type(), userId);
+                    });
+
                     alertCacheService.markAsSent(alertId, userId);
                 }
 
             } catch (Exception e) {
                 log.error("반복 알림 처리 중 오류 발생: alertId={}", alertId, e);
             }
-        }, 10, 10, TimeUnit.SECONDS); // 첫 실행은 10초 후부터
+        }, 10, 10, TimeUnit.SECONDS);
 
         scheduler.schedule(() -> {
             scheduledFuture.cancel(false);

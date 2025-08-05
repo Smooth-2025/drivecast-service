@@ -1,6 +1,6 @@
-package com.smooth.alert_service.websocket;
+package com.smooth.alert_service.config;
 
-import com.smooth.alert_service.jwt.JwtTokenProvider;
+import com.smooth.alert_service.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

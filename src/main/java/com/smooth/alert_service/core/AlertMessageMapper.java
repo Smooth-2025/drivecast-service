@@ -1,8 +1,8 @@
-package com.smooth.alert_service.mapper;
+package com.smooth.alert_service.core;
 
-import com.smooth.alert_service.domain.AlertType;
-import com.smooth.alert_service.dto.AlertEvent;
-import com.smooth.alert_service.dto.AlertMessageDto;
+import com.smooth.alert_service.model.AlertType;
+import com.smooth.alert_service.model.AlertEvent;
+import com.smooth.alert_service.model.AlertMessageDto;
 
 import java.util.Optional;
 

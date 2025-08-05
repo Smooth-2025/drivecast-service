@@ -1,7 +1,7 @@
-package com.smooth.alert_service.validator;
+package com.smooth.alert_service.support.validator;
 
-import com.smooth.alert_service.domain.AlertType;
-import com.smooth.alert_service.dto.AlertEvent;
+import com.smooth.alert_service.model.AlertType;
+import com.smooth.alert_service.model.AlertEvent;
 
 public class AlertEventValidator {
 

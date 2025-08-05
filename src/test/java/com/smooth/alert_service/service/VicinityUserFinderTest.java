@@ -1,6 +1,7 @@
 package com.smooth.alert_service.service;
 
-import com.smooth.alert_service.dto.AlertEvent;
+import com.smooth.alert_service.core.VicinityUserFinder;
+import com.smooth.alert_service.model.AlertEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;

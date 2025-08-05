@@ -1,6 +1,6 @@
-package com.smooth.alert_service.controller;
+package com.smooth.alert_service.api.test;
 
-import com.smooth.alert_service.jwt.JwtTokenProvider;
+import com.smooth.alert_service.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;

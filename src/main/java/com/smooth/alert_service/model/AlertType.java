@@ -1,4 +1,4 @@
-package com.smooth.alert_service.domain;
+package com.smooth.alert_service.model;
 
 import java.util.Arrays;
 import java.util.Optional;

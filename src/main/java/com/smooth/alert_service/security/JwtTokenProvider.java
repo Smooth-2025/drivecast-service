@@ -1,6 +1,5 @@
-package com.smooth.alert_service.jwt;
+package com.smooth.alert_service.security;
 
-import com.smooth.alert_service.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

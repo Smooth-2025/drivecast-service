@@ -1,4 +1,4 @@
-package com.smooth.alert_service.dto;
+package com.smooth.alert_service.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

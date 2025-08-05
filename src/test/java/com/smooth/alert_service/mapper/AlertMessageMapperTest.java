@@ -1,6 +1,7 @@
 package com.smooth.alert_service.mapper;
 
-import com.smooth.alert_service.dto.AlertEvent;
+import com.smooth.alert_service.core.AlertMessageMapper;
+import com.smooth.alert_service.model.AlertEvent;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

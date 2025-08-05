@@ -1,4 +1,4 @@
-package com.smooth.alert_service.controller;
+package com.smooth.alert_service.api.test;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

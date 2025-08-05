@@ -1,7 +1,7 @@
-package com.smooth.alert_service.service;
+package com.smooth.alert_service.core;
 
-import com.smooth.alert_service.domain.EventType;
-import com.smooth.alert_service.dto.AlertEvent;
+import com.smooth.alert_service.model.EventType;
+import com.smooth.alert_service.model.AlertEvent;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.GeoOperations;

@@ -1,7 +1,8 @@
 package com.smooth.alert_service.model;
 
+import java.util.Map;
+
 public record AlertMessageDto(
         String type,
-        String title,
-        String content
+        Map<String, Object> payload
 ) {}

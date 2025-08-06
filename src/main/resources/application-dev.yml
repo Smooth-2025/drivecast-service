@@ -30,11 +30,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
 jwt:
-  secret: dev-jwt-secret-key
+  secret: dev-jwt-secret-key-must-be-at-least-32-characters-long-for-security
   expiration: 3600000 # 1시간
 
 logging:
   level:
     root: INFO
-    com.yourcompany.alertservice: DEBUG
+    com.smooth.alert_service: DEBUG
     org.springframework.web: DEBUG

@@ -21,4 +21,4 @@ server:
 logging:
   level:
     root: INFO
-    com.yourcompany.alertservice: INFO
+    com.smooth.alert_service: INFO

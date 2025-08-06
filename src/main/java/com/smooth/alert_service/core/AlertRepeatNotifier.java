@@ -77,8 +77,8 @@ public class AlertRepeatNotifier {
 
                     boolean isSelf = event.userId() != null && event.userId().equals(userId);
                     String msgType = isSelf ? "내사고" : ("obstacle".equals(event.type()) ? "장애물" : "반경내사고");
-                    log.info("초기 알림 전송 완료: type={}, userId={}, msgType={}",
-                            event.type(), userId, msgType);
+                    log.info("🔥 초기 알림 전송 완료: type={}, userId={}, msgType={}, alertId={}",
+                            event.type(), userId, msgType, alertId);
                 });
 
                 alertCacheService.markAsSent(alertId, userId);
@@ -118,8 +118,8 @@ public class AlertRepeatNotifier {
 
                     AlertMessageMapper.map(event, userId).ifPresent(msg -> {
                         alertSender.sendToUser(userId, msg);
-                        log.info("반복 알림 전송 완료: type={}, userId={} (새 진입자)",
-                                event.type(), userId);
+                        log.info("🔄 반복 알림 전송 완료: type={}, userId={} (새 진입자), alertId={}",
+                                event.type(), userId, alertId);
                     });
 
                     alertCacheService.markAsSent(alertId, userId);

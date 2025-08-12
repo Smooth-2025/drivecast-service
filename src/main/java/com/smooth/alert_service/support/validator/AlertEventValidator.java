@@ -16,13 +16,13 @@ public class AlertEventValidator {
         switch (type) {
             case ACCIDENT -> {
                 require(event.accidentId(), "accidentId is required for type=accident");
-                require(event.userId(), "userId is required for type=accident");
+                require(event.userId(), "userId(vehicleId) is required for type=accident");
                 require(event.latitude(), "latitude is required for type=accident");
                 require(event.longitude(), "longitude is required for type=accident");
                 require(event.timestamp(), "timestamp is required for type=accident");
             }
             case OBSTACLE -> {
-                require(event.userId(), "userId is required for type=obstacle");
+                require(event.userId(), "userId(vehicleId) is required for type=obstacle");
                 require(event.latitude(), "latitude is required for type=obstacle");
                 require(event.longitude(), "longitude is required for type=obstacle");
                 require(event.timestamp(), "timestamp is required for type=obstacle");
@@ -33,7 +33,7 @@ public class AlertEventValidator {
                 require(event.timestamp(), "timestamp is required for type=pothole");
             }
             case START, END -> {
-                require(event.userId(), "userId is required for type=" + type);
+                require(event.userId(), "userId(vehicleId) is required for type=" + type);
                 require(event.timestamp(), "timestamp is required for type=" + type);
             }
         }

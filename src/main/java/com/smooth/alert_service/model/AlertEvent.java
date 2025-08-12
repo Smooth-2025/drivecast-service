@@ -1,12 +1,13 @@
 package com.smooth.alert_service.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AlertEvent(
-        String type,
+        @JsonAlias({"event_type", "type"}) String type,
         String accidentId,
-        String userId,
+        @JsonAlias({"vehicleId", "userId"}) String userId,
         Double latitude,
         Double longitude,
         String timestamp

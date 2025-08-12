@@ -5,6 +5,7 @@ import com.smooth.alert_service.model.AlertEvent;
 import com.smooth.alert_service.support.util.LastSeenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,6 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/test")
-@RequiredArgsConstructor
 public class AlertTestController {
 
     private static final String GEO_KEY = "location:current";
@@ -24,6 +24,17 @@ public class AlertTestController {
     private final RedisTemplate<String, String> redisTemplate;
     private final com.smooth.alert_service.core.AlertSender alertSender;
     private final LastSeenService lastSeenService;
+
+    // 생성자 직접 작성
+    public AlertTestController(AlertEventHandler alertEventHandler,
+                               @Qualifier("valkeyRedisTemplate") RedisTemplate<String, String> redisTemplate,
+                               com.smooth.alert_service.core.AlertSender alertSender,
+                               LastSeenService lastSeenService) {
+        this.alertEventHandler = alertEventHandler;
+        this.redisTemplate = redisTemplate;
+        this.alertSender = alertSender;
+        this.lastSeenService = lastSeenService;
+    }
     
     // 사고 알림 테스트
     @PostMapping("/accident")

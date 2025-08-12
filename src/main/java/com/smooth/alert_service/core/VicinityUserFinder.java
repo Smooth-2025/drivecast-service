@@ -2,6 +2,7 @@ package com.smooth.alert_service.core;
 
 import com.smooth.alert_service.support.util.LastSeenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.domain.geo.Metrics;
 import org.springframework.data.redis.connection.RedisGeoCommands;
@@ -15,12 +16,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-@RequiredArgsConstructor
 public class VicinityUserFinder {
 
     private static final String GEO_KEY = "location:current";
     private final LastSeenService lastSeenService;
     private final RedisTemplate<String, String> redisTemplate;
+
+    public VicinityUserFinder(LastSeenService lastSeenService,
+                              @Qualifier("valkeyRedisTemplate") RedisTemplate<String, String> redisTemplate) {
+        this.lastSeenService = lastSeenService;
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 반경 내 사용자 조회 (refTime ± skew 안에 lastseen이 존재하는 사용자만)

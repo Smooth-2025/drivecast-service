@@ -1,22 +1,19 @@
 spring:
+  # 내부 캐시용 Redis (Spring Boot 기본 설정)
   data:
     redis:
-      host: valkey-prod.xxxxxx.cache.amazonaws.com
-      port: 6379
-      password: ${REDIS_PASSWORD}
+      host: ${CACHE_REDIS_HOST}  # 환경변수 필수
+      port: ${CACHE_REDIS_PORT:6379}
+      password: ${CACHE_REDIS_PASSWORD}  # 환경변수 필수
+      database: 0
       timeout: 3000ms
-      lettuce:
-        pool:
-          max-active: 10
-          max-idle: 5
-          min-idle: 2
 
   datasource:
-    url: jdbc:mysql://prod-db-host:3306/alert_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME:alert_db}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USER}  # 환경변수 필수
+    password: ${DB_PASSWORD}  # 환경변수 필수
     driver-class-name: com.mysql.cj.jdbc.Driver
-  
+
   cloud:
     openfeign:
       client:
@@ -29,18 +26,22 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    database-platform: org.hibernate.dialect.MySQL8Dialect
     properties:
       hibernate:
         format_sql: false
         show_sql: false
 
 jwt:
-  secret: ${JWT_SECRET}
-  expiration: 3600000 # 1시간
+  secret: ${JWT_SECRET}  # 환경변수 필수
+
+# Valkey 설정 (위치 데이터용)
+valkey:
+  host: ${VALKEY_HOST}  # 환경변수 필수
+  port: ${VALKEY_PORT:6379}
+  password: ${VALKEY_PASSWORD}  # 환경변수 필수
+  database: 0
+  timeout: 3000ms
 
 logging:
   level:
-    root: INFO
-    com.smooth.alert_service: INFO
     org.springframework.web: WARN

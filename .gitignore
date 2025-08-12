@@ -40,3 +40,7 @@ out/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+### environment ###
+.env
+application-dev.yml

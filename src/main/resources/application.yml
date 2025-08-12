@@ -2,7 +2,7 @@ spring:
   application:
     name: alert-service
   profiles:
-    active: dev # 또는 prod, 실행 환경에 따라 자동으로 바뀜
+    active: dev  # 기본 프로파일 설정
 
   session:
     redis:
@@ -14,6 +14,19 @@ spring:
     redis:
       repositories:
         enabled: false
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: full
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+jwt:
+  expiration: 3600000 # 1시간
 
 server:
   port: 8080

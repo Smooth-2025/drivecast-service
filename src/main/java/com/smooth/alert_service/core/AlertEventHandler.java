@@ -82,7 +82,11 @@ public class AlertEventHandler {
             return;
         }
 
-        String key = "location:" + event.timestamp();
+        // TODO: POTHOLE 중복 방지 로직 추가 필요 (플링크 구현 완료 후)
+        // - AlertCacheService.markIfFirst() 호출 추가
+        // - alertId 생성 방식: 좌표 기반으로 변경 (같은 위치 포트홀 = 같은 ID)
+        // - 현재는 AlertIdResolver에서 매번 새 UUID 생성하여 중복 방지 불가능
+
         Instant refTime;
         try {
             refTime = Instant.parse(event.timestamp());

@@ -41,7 +41,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 if (accessor != null && accessor.getCommand() != null) {
                     switch (accessor.getCommand()) {
                         case CONNECT:
-                            String userId = accessor.getFirstNativeHeader("user-id");
+                            String userId = accessor.getFirstNativeHeader("userId");
                             if (userId != null) {
                                 accessor.setUser(new StompPrincipal(userId));
                                 System.out.println("CONNECT - userId = " + userId);

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AlertEvent(
-        @JsonAlias({"event_type", "type"}) String type,
+        @JsonAlias({"eventType", "type"}) String type,
         String accidentId,
         @JsonAlias({"vehicleId", "userId"}) String userId,
         Double latitude,

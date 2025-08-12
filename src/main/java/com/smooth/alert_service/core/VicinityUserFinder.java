@@ -1,15 +1,11 @@
 package com.smooth.alert_service.core;
 
-import com.smooth.alert_service.model.EventType;
-import com.smooth.alert_service.model.AlertEvent;
 import com.smooth.alert_service.support.util.LastSeenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.geo.*;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.domain.geo.Metrics;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.domain.geo.GeoReference;
-import org.springframework.data.redis.core.GeoOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 

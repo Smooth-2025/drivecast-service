@@ -4,7 +4,6 @@ import com.smooth.alert_service.model.AlertEvent;
 import com.smooth.alert_service.model.EventType;
 import com.smooth.alert_service.repository.AlertCacheService;
 import com.smooth.alert_service.support.util.AlertIdResolver;
-import com.smooth.alert_service.support.util.LatestLocationKeyFinder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -25,7 +24,6 @@ public class AlertRepeatNotifier {
 
     private final VicinityUserFinder vicinityUserFinder;
     private final AlertCacheService alertCacheService;
-    private final LatestLocationKeyFinder latestLocationKeyFinder;
     private final AlertSender alertSender;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(
@@ -53,41 +51,48 @@ public class AlertRepeatNotifier {
         scheduleRepeatedNotification(event, alertId, radius);
     }
 
+    // 최초 전파: refTime = event.timestamp (파싱 실패 시 now)
     private void performInitialNotification(AlertEvent event, String alertId, int radius) {
         try {
-            String initialKey = "location:" + event.timestamp();
-            log.info("초기 알림 조회 시작: alertId={}, key={}", alertId, initialKey);
 
             // OBSTACLE의 경우 본인 제외, ACCIDENT의 경우 본인 포함
             String excludeUserId = "obstacle".equals(event.type()) ? event.userId() : null;
 
+            Instant refTime;
+            try {
+                refTime = Instant.parse(event.timestamp());
+            } catch (Exception parseEx) {
+                log.warn("timestamp 파싱 실패, 현재시각 사용: ts={}, alertId={}", event.timestamp(), alertId);
+                refTime = Instant.now();
+            }
+
             List<String> targetUsers = vicinityUserFinder.findUsersAround(
                     event.latitude(),
                     event.longitude(),
-                    initialKey,
                     radius,
+                    refTime,
+                    Duration.ofSeconds(5),
                     excludeUserId
             );
 
             for (String userId : targetUsers) {
-                if (alertCacheService.isAlreadySent(alertId, userId)) continue;
+                if (!alertCacheService.markIfFirst(alertId, userId)) continue;
 
                 AlertMessageMapper.map(event, userId).ifPresent(msg -> {
                     alertSender.sendToUser(userId, msg);
 
                     boolean isSelf = event.userId() != null && event.userId().equals(userId);
                     String msgType = isSelf ? "내사고" : ("obstacle".equals(event.type()) ? "장애물" : "반경내사고");
-                    log.info("🔥 초기 알림 전송 완료: type={}, userId={}, msgType={}, alertId={}",
+                    log.info("초기 알림 전송 완료: type={}, userId={}, msgType={}, alertId={}",
                             event.type(), userId, msgType, alertId);
                 });
-
-                alertCacheService.markAsSent(alertId, userId);
             }
         } catch (Exception e) {
             log.error("초기 알림 처리 중 오류 발생: alertId={}", alertId, e);
         }
     }
 
+    // 반복 전파: refTime = now (3분간, 10초 간격), 본인 제외로 새 진입자만
     private void scheduleRepeatedNotification(AlertEvent event, String alertId, int radius) {
         Instant endTime = Instant.now().plus(Duration.ofMinutes(3));
 
@@ -98,31 +103,24 @@ public class AlertRepeatNotifier {
                     return;
                 }
 
-                String latestKey = latestLocationKeyFinder.findLatestKey(Instant.now(), 3);
-                if (latestKey == null) {
-                    log.warn("최근 위치 키 없음 (alertId={})", alertId);
-                    return;
-                }
-
                 // 반복 알림에서는 항상 본인 제외 (새 진입자만 대상)
                 List<String> nearbyUsers = vicinityUserFinder.findUsersAround(
                         event.latitude(),
                         event.longitude(),
-                        latestKey,
                         radius,
-                        event.userId()
+                        Instant.now(),
+                        Duration.ofSeconds(5),
+                        event.userId() // 반복에서는 본인 제외
                 );
 
                 for (String userId : nearbyUsers) {
-                    if (alertCacheService.isAlreadySent(alertId, userId)) continue;
+                    if (!alertCacheService.markIfFirst(alertId, userId)) continue;
 
                     AlertMessageMapper.map(event, userId).ifPresent(msg -> {
                         alertSender.sendToUser(userId, msg);
                         log.info("🔄 반복 알림 전송 완료: type={}, userId={} (새 진입자), alertId={}",
                                 event.type(), userId, alertId);
                     });
-
-                    alertCacheService.markAsSent(alertId, userId);
                 }
 
             } catch (Exception e) {

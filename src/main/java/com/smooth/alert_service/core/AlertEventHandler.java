@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -81,8 +83,20 @@ public class AlertEventHandler {
         }
 
         String key = "location:" + event.timestamp();
+        Instant refTime;
+        try {
+            refTime = Instant.parse(event.timestamp());
+        } catch (Exception e) {
+            log.warn("timestamp 파싱 실패, 현재 시각 사용: {}", event.timestamp());
+            refTime = Instant.now();
+        }
         List<String> targets = vicinityUserFinder.findUsersAround(
-                event.latitude(), event.longitude(), key, eventType.getRadiusMeters(), event.userId()
+                event.latitude(),
+                event.longitude(),
+                eventType.getRadiusMeters(),
+                refTime,
+                Duration.ofSeconds(5),
+                null // POTHOLE은 본인 제외 없음(무조건 전송)
         );
 
         for (String userId : targets) {

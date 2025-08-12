@@ -2,6 +2,7 @@ package com.smooth.alert_service.api.test;
 
 import com.smooth.alert_service.core.AlertEventHandler;
 import com.smooth.alert_service.model.AlertEvent;
+import com.smooth.alert_service.support.util.LastSeenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,10 +17,13 @@ import java.util.Map;
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
 public class AlertTestController {
+
+    private static final String GEO_KEY = "location:current";
     
     private final AlertEventHandler alertEventHandler;
     private final RedisTemplate<String, String> redisTemplate;
     private final com.smooth.alert_service.core.AlertSender alertSender;
+    private final LastSeenService lastSeenService;
     
     // 사고 알림 테스트
     @PostMapping("/accident")
@@ -30,21 +34,27 @@ public class AlertTestController {
             @RequestParam(required = false) String accidentId) {
         
         try {
-            // 테스트용 위치 데이터를 Redis에 저장
-            String timestamp = Instant.now().toString();
-            String locationKey = "location:" + timestamp;
-            
-            // 테스트용 사용자들 위치 저장 (사고 지점 주변)
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude, latitude), userId);
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.001, latitude + 0.001), "nearby-user-1");
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.002, latitude + 0.002), "nearby-user-2");
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.01, latitude + 0.01), "far-user-1"); // 반경 밖
+            Instant now = Instant.now();
+
+            // 테스트용 위치 데이터: 단일 GEOSET에 기록 + lastseen 갱신
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude, latitude), userId);
+            lastSeenService.markSeen(userId, now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.001, latitude + 0.001), "nearby-user-1");
+            lastSeenService.markSeen("nearby-user-1", now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.002, latitude + 0.002), "nearby-user-2");
+            lastSeenService.markSeen("nearby-user-2", now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.01, latitude + 0.01), "far-user-1"); // 반경 밖
+            lastSeenService.markSeen("far-user-1", now);
             
             // 사고 이벤트 생성
+            String timestamp = now.toString();
             AlertEvent event = new AlertEvent(
                 "accident",
                 accidentId != null ? accidentId : "test-accident-" + System.currentTimeMillis(),
@@ -61,7 +71,7 @@ public class AlertTestController {
                 "status", "success",
                 "message", "사고 알림 전송 완료",
                 "event", event,
-                "locationKey", locationKey,
+                "geoKey", GEO_KEY,
                 "testUsers", Map.of(
                     "accident_user", userId,
                     "nearby_users", new String[]{"nearby-user-1", "nearby-user-2"},
@@ -86,17 +96,22 @@ public class AlertTestController {
             @RequestParam Double longitude) {
         
         try {
-            String timestamp = Instant.now().toString();
-            String locationKey = "location:" + timestamp;
-            
-            // 테스트용 사용자들 위치 저장
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude, latitude), userId);
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.0005, latitude + 0.0005), "nearby-user-1");
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.001, latitude + 0.001), "nearby-user-2");
-            
+            Instant now = Instant.now();
+
+            // 위치 + lastseen
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude, latitude), userId);
+            lastSeenService.markSeen(userId, now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.0005, latitude + 0.0005), "nearby-user-1");
+            lastSeenService.markSeen("nearby-user-1", now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.001, latitude + 0.001), "nearby-user-2");
+            lastSeenService.markSeen("nearby-user-2", now);
+
+            String timestamp = now.toString();
             AlertEvent event = new AlertEvent(
                 "obstacle",
                 null,
@@ -113,7 +128,7 @@ public class AlertTestController {
                 "status", "success",
                 "message", "장애물 알림 전송 완료",
                 "event", event,
-                "locationKey", locationKey,
+                "geoKey", GEO_KEY,
                 "note", "본인(" + userId + ")은 알림을 받지 않고, 반경 내 다른 사용자들만 알림 수신"
             ));
             
@@ -134,15 +149,19 @@ public class AlertTestController {
             @RequestParam Double longitude) {
         
         try {
-            String timestamp = Instant.now().toString();
-            String locationKey = "location:" + timestamp;
-            
-            // 테스트용 사용자들 위치 저장 (포트홀은 50m 반경)
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude, latitude), userId);
-            redisTemplate.opsForGeo().add(locationKey, 
-                new org.springframework.data.geo.Point(longitude + 0.0003, latitude + 0.0003), "nearby-user-1");
-            
+            Instant now = Instant.now();
+
+            // 위치 + lastseen
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude, latitude), userId);
+            lastSeenService.markSeen(userId, now);
+
+            redisTemplate.opsForGeo().add(GEO_KEY,
+                    new org.springframework.data.geo.Point(longitude + 0.0003, latitude + 0.0003), "nearby-user-1");
+            lastSeenService.markSeen("nearby-user-1", now);
+
+            String timestamp = now.toString();
+
             AlertEvent event = new AlertEvent(
                 "pothole",
                 null,
@@ -159,7 +178,7 @@ public class AlertTestController {
                 "status", "success",
                 "message", "포트홀 알림 전송 완료 (1회성)",
                 "event", event,
-                "locationKey", locationKey
+                "geoKey", GEO_KEY
             ));
             
         } catch (Exception e) {

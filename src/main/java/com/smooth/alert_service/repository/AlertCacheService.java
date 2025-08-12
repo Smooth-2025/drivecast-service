@@ -38,6 +38,6 @@ public class AlertCacheService {
     }
 
     private String buildKey(String alertId, String userId) {
-        return "alert_sent:" + alertId + ":" + userId;
+        return "alert:" + alertId + ":" + userId;
     }
 }

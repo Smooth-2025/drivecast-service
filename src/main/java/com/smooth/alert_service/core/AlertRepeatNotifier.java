@@ -17,6 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import jakarta.annotation.PreDestroy;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -132,5 +134,25 @@ public class AlertRepeatNotifier {
             scheduledFuture.cancel(false);
             log.info("알림 반복 스케줄러 종료: alertId={}", alertId);
         }, 3, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("AlertRepeatNotifier 스케줄러 종료 시작");
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("스케줄러가 5초 내에 종료되지 않아 강제 종료합니다");
+                scheduler.shutdownNow();
+                if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.error("스케줄러 강제 종료 실패");
+                }
+            }
+            log.info("AlertRepeatNotifier 스케줄러 종료 완료");
+        } catch (InterruptedException e) {
+            log.warn("스케줄러 종료 중 인터럽트 발생");
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

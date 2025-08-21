@@ -2,6 +2,7 @@ package com.smooth.alert_service.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,14 @@ import java.time.Duration;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AlertCacheService {
 
     private static final Duration TTL = Duration.ofMinutes(3);
     private final RedisTemplate<String, String> redisTemplate;
+
+    public AlertCacheService(@Qualifier("stringRedisTemplate") RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     private String buildKey(String alertId, String userId) {
         return "alert:" + alertId + ":" + userId;

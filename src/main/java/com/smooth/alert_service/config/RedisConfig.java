@@ -11,22 +11,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-//    @Bean
-//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-//        RedisTemplate<String, Object> template = new RedisTemplate<>();
-//        template.setConnectionFactory(redisConnectionFactory);
-//
-//        StringRedisSerializer stringSerializer = new StringRedisSerializer();
-//        template.setKeySerializer(stringSerializer);
-//        template.setHashKeySerializer(stringSerializer);
-//        template.setValueSerializer(stringSerializer);
-//        template.setHashValueSerializer(stringSerializer);
-//
-//        template.afterPropertiesSet();
-//        return template;
-//    }
-
-
     // Valkey 설정값
     @Value("${valkey.host:localhost}")
     private String valkeyHost;

@@ -1,8 +1,8 @@
 package com.smooth.alert_service.config;
 
 import com.smooth.alert_service.security.JwtTokenProvider;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -14,10 +14,13 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class SessionEventListener {
 
     private final StringRedisTemplate redisTemplate;
+
+    public SessionEventListener(@Qualifier("stringRedisTemplate") StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
     // private final JwtTokenProvider jwtTokenProvider;
 
     @EventListener
@@ -86,7 +89,7 @@ public class SessionEventListener {
     @EventListener
     public void handleWebsocketDisconnectListener(SessionDisconnectEvent event) {
         String sessionId = event.getSessionId();
-        
+
         if (sessionId == null) {
             log.warn("DISCONNECT 이벤트에서 SessionId가 null입니다.");
             return;

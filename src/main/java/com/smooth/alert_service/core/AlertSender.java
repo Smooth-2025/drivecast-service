@@ -13,9 +13,10 @@ public class AlertSender {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void sendToUser(String userId, AlertMessageDto message) {
+        log.info("AlertSender.sendToUser 호출: userId={}", userId);
         try {
-            messagingTemplate.convertAndSendToUser(userId, "/alert", message);
-            log.debug("알림 전송 성공: userId={}", userId);
+            messagingTemplate.convertAndSendToUser(userId, "/queue/alert", message);
+            log.info("알림 전송 성공: userId={}", userId);
         } catch (Exception e) {
             log.error("알림 전송 실패: userId={}", userId, e);
         }

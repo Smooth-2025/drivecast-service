@@ -1,6 +1,6 @@
 package com.smooth.alert_service.support.util;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -9,9 +9,12 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class LastSeenService {
     private final StringRedisTemplate redis;
+
+    public LastSeenService(@Qualifier("stringRedisTemplate") StringRedisTemplate redis) {
+        this.redis = redis;
+    }
 
     private String key(String userId) {
         return "lastseen:" + userId;

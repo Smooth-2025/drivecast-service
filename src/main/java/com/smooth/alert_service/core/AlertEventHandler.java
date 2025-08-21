@@ -4,6 +4,7 @@ import com.smooth.alert_service.model.AlertType;
 import com.smooth.alert_service.model.AlertEvent;
 import com.smooth.alert_service.model.EventType;
 import com.smooth.alert_service.support.validator.AlertEventValidator;
+import com.smooth.alert_service.support.util.KoreanTimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -89,9 +90,10 @@ public class AlertEventHandler {
 
         Instant refTime;
         try {
-            refTime = Instant.parse(event.timestamp());
+            // 한국시 문자열을 Instant로 변환
+            refTime = KoreanTimeUtil.parseKoreanTime(event.timestamp());
         } catch (Exception e) {
-            log.warn("timestamp 파싱 실패, 현재 시각 사용: {}", event.timestamp());
+            log.warn("한국시 timestamp 파싱 실패, 현재 시각 사용: {}", event.timestamp());
             refTime = Instant.now();
         }
         List<String> targets = vicinityUserFinder.findUsersAround(

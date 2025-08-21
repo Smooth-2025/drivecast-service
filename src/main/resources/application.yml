@@ -1,6 +1,6 @@
 spring:
   application:
-    name: alert-service
+    name: drivecast-service
   profiles:
     active: dev  # 기본 프로파일 설정
 

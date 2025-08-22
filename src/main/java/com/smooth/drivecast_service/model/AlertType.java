@@ -6,7 +6,6 @@ import java.util.Optional;
 public enum AlertType {
     ACCIDENT("accident"),
     OBSTACLE("obstacle"),
-    POTHOLE("pothole"),
     START("start"),
     END("end");
 

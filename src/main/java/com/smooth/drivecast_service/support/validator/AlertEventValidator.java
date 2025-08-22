@@ -27,11 +27,6 @@ public class AlertEventValidator {
                 require(event.longitude(), "longitude is required for type=obstacle");
                 require(event.timestamp(), "timestamp is required for type=obstacle");
             }
-            case POTHOLE -> {
-                require(event.latitude(), "latitude is required for type=pothole");
-                require(event.longitude(), "longitude is required for type=pothole");
-                require(event.timestamp(), "timestamp is required for type=pothole");
-            }
             case START, END -> {
                 require(event.userId(), "userId(vehicleId) is required for type=" + type);
                 require(event.timestamp(), "timestamp is required for type=" + type);

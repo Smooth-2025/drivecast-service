@@ -48,13 +48,6 @@ public class AlertMessageMapper {
                     );
                 }
             }
-            case POTHOLE -> new AlertMessageDto(
-                    "pothole",
-                    Map.of(
-                            "title", "포트홀 발견",
-                            "content", "전방에 포트홀이 있습니다. 속도를 줄이고 주의해서 주행하세요."
-                    )
-            );
             case START -> new AlertMessageDto(
                     "start",
                     Map.of(

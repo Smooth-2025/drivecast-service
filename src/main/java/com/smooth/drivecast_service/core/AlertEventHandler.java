@@ -2,16 +2,10 @@ package com.smooth.drivecast_service.core;
 
 import com.smooth.drivecast_service.model.AlertType;
 import com.smooth.drivecast_service.model.AlertEvent;
-import com.smooth.drivecast_service.model.EventType;
 import com.smooth.drivecast_service.support.validator.AlertEventValidator;
-import com.smooth.drivecast_service.support.util.KoreanTimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -19,7 +13,6 @@ import java.util.List;
 public class AlertEventHandler {
 
     private final AlertRepeatNotifier alertRepeatNotifier;
-    private final VicinityUserFinder vicinityUserFinder;
     private final AlertSender alertSender;
 
     public void handle(AlertEvent event) {
@@ -46,11 +39,6 @@ public class AlertEventHandler {
                     log.info("1회성 알림 (본인): type={}", event.type());
                     sendToSelf(event);
                 }
-                case POTHOLE -> {
-                    // 1회성 알림: 반경 내 모든 사용자
-                    log.info("1회성 알림 (반경): type={}", event.type());
-                    sendToRadius(event);
-                }
             }
 
         } catch (IllegalArgumentException e) {
@@ -71,47 +59,5 @@ public class AlertEventHandler {
             alertSender.sendToUser(event.userId(), msg);
             log.info("본인 알림 전송 완료: type={}, userId={}", event.type(), event.userId());
         });
-    }
-
-    // POTHOLE용: 반경 내 사용자들에게 전송
-    private void sendToRadius(AlertEvent event) {
-        var eventType = EventType.from(event.type())
-                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 알림 타입: " + event.type()));
-
-        if (event.latitude() == null || event.longitude() == null) {
-            log.warn("좌표 정보 없음: {}", event);
-            return;
-        }
-
-        // TODO: POTHOLE 중복 방지 로직 추가 필요 (플링크 구현 완료 후)
-        // - AlertCacheService.markIfFirst() 호출 추가
-        // - alertId 생성 방식: 좌표 기반으로 변경 (같은 위치 포트홀 = 같은 ID)
-        // - 현재는 AlertIdResolver에서 매번 새 UUID 생성하여 중복 방지 불가능
-
-        Instant refTime;
-        try {
-            // 한국시 문자열을 Instant로 변환
-            refTime = KoreanTimeUtil.parseKoreanTime(event.timestamp());
-        } catch (Exception e) {
-            log.warn("한국시 timestamp 파싱 실패, 현재 시각 사용: {}", event.timestamp());
-            refTime = Instant.now();
-        }
-        List<String> targets = vicinityUserFinder.findUsersAround(
-                event.latitude(),
-                event.longitude(),
-                eventType.getRadiusMeters(),
-                refTime,
-                Duration.ofSeconds(5),
-                null // POTHOLE은 본인 제외 없음(무조건 전송)
-        );
-
-        for (String userId : targets) {
-            AlertMessageMapper.map(event, userId).ifPresent(msg -> {
-                alertSender.sendToUser(userId, msg);
-                log.info("반경 알림 전송: type={}, userId={}", event.type(), userId);
-            });
-        }
-
-        log.info("반경 알림 전송 완료: type={}, 대상수={}", event.type(), targets.size());
     }
 }

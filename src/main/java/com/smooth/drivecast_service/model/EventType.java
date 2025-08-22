@@ -6,7 +6,6 @@ import java.util.Optional;
 public enum EventType {
     ACCIDENT("accident", 300),
     OBSTACLE("obstacle", 100),
-    POTHOLE("pothole", 50),
     START("start", 0),
     END("end", 0);
 

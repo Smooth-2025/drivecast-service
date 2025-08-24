@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.security;
+package com.smooth.drivecast_service.global.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

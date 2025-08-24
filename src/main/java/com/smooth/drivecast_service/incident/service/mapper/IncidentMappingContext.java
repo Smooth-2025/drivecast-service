@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.incident.service.mapper;
 
-import com.smooth.drivecast_service.model.AlertEvent;
+import com.smooth.drivecast_service.incident.dto.IncidentEvent;
 import lombok.Builder;
 import lombok.Value;
 
@@ -16,11 +16,11 @@ import lombok.Value;
 @Builder
 public class IncidentMappingContext {
 
-    AlertEvent event;
+    IncidentEvent event;
     String recipientUserId;
     boolean isSelfIncident;
 
-    public static IncidentMappingContext of(AlertEvent event, String recipientUserId) {
+    public static IncidentMappingContext of(IncidentEvent event, String recipientUserId) {
         boolean isSelf = event.userId() != null && event.userId().equals(recipientUserId);
         return IncidentMappingContext.builder()
                 .event(event)

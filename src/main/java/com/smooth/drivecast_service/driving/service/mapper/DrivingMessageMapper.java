@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.driving.service.mapper;
 
-import com.smooth.drivecast_service.model.AlertMessageDto;
+import com.smooth.drivecast_service.driving.dto.DrivingMessageDto;
 
 import java.util.Optional;
 
@@ -22,5 +22,5 @@ public interface DrivingMessageMapper {
      * @param context 매핑 컨텍스트
      * @return 변환된 AlertMessageDto, 실패시 empty
      **/
-    Optional<AlertMessageDto> map(DrivingMappingContext context);
+    Optional<DrivingMessageDto> map(DrivingMappingContext context);
 }

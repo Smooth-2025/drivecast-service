@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.global.config;
 
-import com.smooth.drivecast_service.security.StompPrincipal;
+import com.smooth.drivecast_service.global.security.StompPrincipal;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

@@ -4,47 +4,17 @@ import com.smooth.drivecast_service.model.AlertType;
 import com.smooth.drivecast_service.model.AlertEvent;
 
 /**
- * 공통 검증 유틸리티
- * 정책 없는 순수 검증 로직만 포함
+ * 공통 검증 유틸리티 (정책 없는 순수 검증 로직만)
+ * 가이드: global/util - 시간/검증/ID 등
  **/
-public class ValidationUtil {
+public final class ValidationUtil {
 
-    /**
-     * AlertEvent 검증
-     * @param event 검증할 이벤트
-     * @throws IllegalArgumentException 검증 실패 시
-     **/
-    public static void validateAlertEvent(AlertEvent event) {
-        if (event.type() == null || event.type().isBlank()) {
-            throw new IllegalArgumentException("type is required");
-        }
-
-        AlertType type = AlertType.from(event.type())
-                .orElseThrow(() -> new IllegalArgumentException("invalid alert type: " + event.type()));
-
-        switch (type) {
-            case ACCIDENT -> {
-                require(event.accidentId(), "accidentId is required for type=accident");
-                require(event.userId(), "userId(vehicleId) is required for type=accident");
-                require(event.latitude(), "latitude is required for type=accident");
-                require(event.longitude(), "longitude is required for type=accident");
-                require(event.timestamp(), "timestamp is required for type=accident");
-            }
-            case OBSTACLE -> {
-                require(event.latitude(), "latitude is required for type=obstacle");
-                require(event.longitude(), "longitude is required for type=obstacle");
-                require(event.timestamp(), "timestamp is required for type=obstacle");
-            }
-            case START, END -> {
-                require(event.userId(), "userId(vehicleId) is required for type=" + type);
-                require(event.timestamp(), "timestamp is required for type=" + type);
-            }
-        }
+    private ValidationUtil() {
+        throw new UnsupportedOperationException("유틸리티 클래스입니다.");
     }
 
     /**
-     * 좌표 유효성 검증
-     *
+     * 좌표 유효성 검증 (정책 없음)
      * @param latitude  위도
      * @param longitude 경도
      * @return 유효하면 true
@@ -55,8 +25,7 @@ public class ValidationUtil {
     }
 
     /**
-     * 사용자 ID 유효성 검증 (null 허용)
-     *
+     * 사용자 ID 유효성 검증 (정책 없음)
      * @param userId 사용자 ID
      * @return 유효하면 true (null 허용)
      **/
@@ -65,13 +34,33 @@ public class ValidationUtil {
     }
 
     /**
-     * 문자열 필수 값 검증
-     * @param value 검증할 값
-     * @param message 오류 메세지
+     * 문자열 공백 검증 (정책 없음)
+     * @param value 검증할 문자열
+     * @return 유효하면 true
      **/
-    private static void require(Object value, String message) {
-        if (value == null || (value instanceof String str && str.isBlank())) {
-            throw new IllegalArgumentException(message);
-        }
+    public static boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    /**
+     * 타임스탬프 형식 기본 검증 (정책 없음)
+     * @param timestamp 타임스탬프 문자열
+     * @return 기본 형식이 유효하면 true
+     **/
+    public static boolean hasValidTimestampFormat(String timestamp) {
+        if (timestamp == null || timestamp.isBlank()) return false;
+        return timestamp.length() >= 10;
+    }
+
+    /**
+     * 숫자 범위 검증 (정책 없음)
+     * @param value 검증할 값
+     * @param min 최소값
+     * @param max 최대값
+     * @return 범위 내에 있으면 true
+     **/
+    public static boolean isInRange(Double value, double min, double max) {
+        if (value == null) return false;
+        return value >= min && value <= max;
     }
 }

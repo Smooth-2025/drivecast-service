@@ -1,6 +1,8 @@
 package com.smooth.drivecast_service.incident.service.mapper;
 
-import com.smooth.drivecast_service.model.AlertMessageDto;
+import com.smooth.drivecast_service.global.exception.BusinessException;
+import com.smooth.drivecast_service.incident.dto.IncidentMessageDto;
+import com.smooth.drivecast_service.incident.exception.IncidentErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +19,10 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
     }
 
     @Override
-    public Optional<AlertMessageDto> map(IncidentMappingContext context) {
+    public Optional<IncidentMessageDto> map(IncidentMappingContext context) {
         try {
-            var event = context.getEvent();
-
             if (context.isSelfIncident()) {
-                return Optional.of(new AlertMessageDto(
+                return Optional.of(new IncidentMessageDto(
                         "accident",
                         Map.of(
                                 "title", "큰 사고가 발생했습니다!",
@@ -30,7 +30,7 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
                         )
                 ));
             } else {
-                return Optional.of(new AlertMessageDto(
+                return Optional.of(new IncidentMessageDto(
                         "accident-nearby",
                         Map.of(
                                 "title", "전방 사고 발생!",
@@ -40,7 +40,7 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
             }
         } catch (Exception e) {
             log.error("ACCIDENT 메시지 매핑 실패: context={}", context, e);
-            return Optional.empty();
+            throw new BusinessException(IncidentErrorCode.INCIDENT_MESSAGE_MAPPING_FAILED, e.getMessage());
         }
     }
 }

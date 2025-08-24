@@ -1,5 +1,8 @@
 package com.smooth.drivecast_service.driving.service.mapper;
 
+import com.smooth.drivecast_service.driving.dto.DrivingMessageDto;
+import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
+import com.smooth.drivecast_service.global.exception.BusinessException;
 import com.smooth.drivecast_service.model.AlertMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,11 +20,11 @@ public class EndMessageMapper implements  DrivingMessageMapper{
     }
 
     @Override
-    public Optional<AlertMessageDto> map(DrivingMappingContext context) {
+    public Optional<DrivingMessageDto> map(DrivingMappingContext context) {
         try {
             var event = context.getEvent();
 
-            return Optional.of(new AlertMessageDto(
+            return Optional.of(new DrivingMessageDto(
                     "end",
                     Map.of(
                             "timestamp", event.timestamp()
@@ -29,7 +32,7 @@ public class EndMessageMapper implements  DrivingMessageMapper{
             ));
         } catch (Exception e) {
             log.error("END 메시지 매핑 실패: context={}", context, e);
-            return Optional.empty();
+            throw new BusinessException(DrivingErrorCode.DRIVING_MESSAGE_MAPPING_FAILED, e.getMessage());
         }
     }
 }

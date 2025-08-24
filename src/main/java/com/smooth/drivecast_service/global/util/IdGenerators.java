@@ -1,6 +1,7 @@
 package com.smooth.drivecast_service.global.util;
 
-import com.smooth.drivecast_service.model.AlertEvent;
+import com.smooth.drivecast_service.driving.dto.DrivingEvent;
+import com.smooth.drivecast_service.incident.dto.IncidentEvent;
 
 import java.util.Optional;
 
@@ -12,33 +13,32 @@ import java.util.Optional;
 public class IdGenerators {
 
     /**
-     * AlertEvent 로 부터 alertId 생성
-     * @param event 알림 이벤트
-     * @return 생성된 alertId
+     * 주행 이벤트로부터 alertId 생성
      **/
-    public static Optional<String> generateAlertId(AlertEvent event) {
+    public static String generateDrivingAlertId(DrivingEvent event) {
         return switch (event.type()) {
-            case "accident" -> Optional.ofNullable(event.accidentId());
-            case "obstacle" -> {
+            case START -> String.format("start-%s-%s",
+                    event.userId(),
+                    sanitizeTimestamp(event.timestamp()));
+            case END -> String.format("end-%s-%s",
+                    event.userId(),
+                    sanitizeTimestamp(event.timestamp()));
+        };
+    }
+
+    /**
+     * 사고 이벤트로부터 alertId 생성
+     **/
+    public static Optional<String> generateIncidentAlertId(IncidentEvent event) {
+        return switch (event.type()) {
+            case ACCIDENT -> Optional.ofNullable(event.accidentId());
+            case OBSTACLE -> {
                 String obstacleId = String.format("obstacle-%s-%s-%s",
                         formatCoordinate(event.latitude()),
                         formatCoordinate(event.longitude()),
                         sanitizeTimestamp(event.timestamp()));
                 yield Optional.of(obstacleId);
             }
-            case "start" -> {
-                String startId = String.format("start-%s-%s",
-                        event.userId(),
-                        sanitizeTimestamp(event.timestamp()));
-                yield Optional.of(startId);
-            }
-            case "end" -> {
-                String endId = String.format("end-%s-%s",
-                        event.userId(),
-                        sanitizeTimestamp(event.timestamp()));
-                yield Optional.of(endId);
-            }
-            default -> Optional.empty();
         };
     }
 

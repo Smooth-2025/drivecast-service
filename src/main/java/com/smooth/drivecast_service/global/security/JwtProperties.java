@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.security;
+package com.smooth.drivecast_service.global.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

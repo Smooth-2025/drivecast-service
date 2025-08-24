@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.driving.service.mapper;
 
-import com.smooth.drivecast_service.model.AlertEvent;
+import com.smooth.drivecast_service.driving.dto.DrivingEvent;
 import lombok.Builder;
 import lombok.Value;
 
@@ -14,9 +14,9 @@ import lombok.Value;
 @Builder
 public class DrivingMappingContext {
 
-    AlertEvent event;
+    DrivingEvent event;
 
-    public static DrivingMappingContext of(AlertEvent event) {
+    public static DrivingMappingContext of(DrivingEvent event) {
         return DrivingMappingContext.builder()
                 .event(event)
                 .build();

@@ -1,7 +1,7 @@
-package com.smooth.drivecast_service.core;
+package com.smooth.drivecast_service.global.common.location;
 
-import com.smooth.drivecast_service.support.util.LastSeenService;
-import com.smooth.drivecast_service.support.util.KoreanTimeUtil;
+import com.smooth.drivecast_service.global.common.cache.PresenceService;
+import com.smooth.drivecast_service.global.util.KoreanTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.geo.Distance;
@@ -20,12 +20,12 @@ import java.util.Objects;
 @Component
 public class VicinityUserFinder {
 
-    private final LastSeenService lastSeenService;
+    private final PresenceService presenceService;
     private final RedisTemplate<String, String> redisTemplate;
 
-    public VicinityUserFinder(LastSeenService lastSeenService,
+    public VicinityUserFinder(PresenceService presenceService,
                               @Qualifier("valkeyRedisTemplate") RedisTemplate<String, String> redisTemplate) {
-        this.lastSeenService = lastSeenService;
+        this.presenceService = presenceService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -148,11 +148,11 @@ public class VicinityUserFinder {
                     return notExcluded;
                 })
                 .filter(uid -> {
-                    boolean isFresh = lastSeenService.isFresh(uid, refTime, skew);
+                    boolean isFresh = presenceService.isFresh(uid, refTime, skew);
                     log.info("🕐 LastSeen 필터링: userId={}, isFresh={}, refTime={}, skew={}초",
                             uid, isFresh, refTime, skew.getSeconds());
                     if (!isFresh) {
-                        var lastSeen = lastSeenService.getLastSeen(uid);
+                        var lastSeen = presenceService.getLastSeen(uid);
                         log.info("  - 마지막 접속: {}", lastSeen.orElse(null));
                         log.warn("⚠️ LastSeen 데이터 없음 - 임시로 통과시킴: userId={}", uid);
                         return true; // 임시로 모든 사용자 통과

@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.repository;
+package com.smooth.drivecast_service.global.common.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

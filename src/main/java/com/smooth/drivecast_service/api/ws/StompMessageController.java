@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.api.ws;
 
-import com.smooth.drivecast_service.core.AlertSender;
+import com.smooth.drivecast_service.global.common.notification.AlertSender;
 import com.smooth.drivecast_service.model.AlertMessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

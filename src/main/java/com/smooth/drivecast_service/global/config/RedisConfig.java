@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.config;
+package com.smooth.drivecast_service.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

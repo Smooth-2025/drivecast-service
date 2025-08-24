@@ -1,10 +1,12 @@
 package com.smooth.drivecast_service.core;
 
+import com.smooth.drivecast_service.global.common.location.VicinityUserFinder;
+import com.smooth.drivecast_service.global.common.notification.AlertSender;
 import com.smooth.drivecast_service.model.AlertEvent;
 import com.smooth.drivecast_service.model.EventType;
-import com.smooth.drivecast_service.repository.AlertCacheService;
-import com.smooth.drivecast_service.support.util.AlertIdResolver;
-import com.smooth.drivecast_service.support.util.KoreanTimeUtil;
+import com.smooth.drivecast_service.global.common.cache.AlertCacheService;
+import com.smooth.drivecast_service.global.util.IdGenerators;
+import com.smooth.drivecast_service.global.util.KoreanTimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -38,7 +40,7 @@ public class AlertRepeatNotifier {
         log.info("🔍 AlertRepeatNotifier.start 호출: type={}, userId={}, accidentId={}",
                 event.type(), event.userId(), event.accidentId());
 
-        Optional<String> alertIdOpt = AlertIdResolver.resolve(event);
+        Optional<String> alertIdOpt = IdGenerators.generateAlertId(event);
         if(alertIdOpt.isEmpty()) {
             log.warn("❌ 반복 알림 제외 대상 - AlertId 없음: type={}, userId={}, accidentId={}",
                     event.type(), event.userId(), event.accidentId());

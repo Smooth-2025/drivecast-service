@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.support.util;
+package com.smooth.drivecast_service.global.common.cache;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;

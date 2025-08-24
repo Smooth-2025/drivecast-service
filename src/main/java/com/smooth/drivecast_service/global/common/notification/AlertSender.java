@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.core;
+package com.smooth.drivecast_service.global.common.notification;
 
 import com.smooth.drivecast_service.model.AlertMessageDto;
 import lombok.RequiredArgsConstructor;

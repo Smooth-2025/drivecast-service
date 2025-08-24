@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.config;
+package com.smooth.drivecast_service.global.config;
 
 import com.smooth.drivecast_service.security.StompPrincipal;
 import org.springframework.context.annotation.Configuration;

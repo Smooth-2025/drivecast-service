@@ -1,8 +1,9 @@
 package com.smooth.drivecast_service.core;
 
+import com.smooth.drivecast_service.global.common.notification.AlertSender;
 import com.smooth.drivecast_service.model.AlertType;
 import com.smooth.drivecast_service.model.AlertEvent;
-import com.smooth.drivecast_service.support.validator.AlertEventValidator;
+import com.smooth.drivecast_service.global.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class AlertEventHandler {
         log.info("알림 이벤트 수신: type={}, userId={}, time={}", event.type(), event.userId(), event.timestamp());
 
         try {
-            AlertEventValidator.validate(event);
+            ValidationUtil.validateAlertEvent(event);
 
             var alertType = AlertType.from(event.type());
             if (alertType.isEmpty()) {

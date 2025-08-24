@@ -1,4 +1,4 @@
-package com.smooth.drivecast_service.support.util;
+package com.smooth.drivecast_service.global.util;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

@@ -1,6 +1,9 @@
 package com.smooth.drivecast_service.core;
 
+import com.smooth.drivecast_service.driving.service.mapper.DrivingMappingContext;
+import com.smooth.drivecast_service.driving.service.mapper.DrivingMessageMapperFactory;
 import com.smooth.drivecast_service.global.common.notification.AlertSender;
+import com.smooth.drivecast_service.incident.service.mapper.IncidentMessageMapperFactory;
 import com.smooth.drivecast_service.model.AlertType;
 import com.smooth.drivecast_service.model.AlertEvent;
 import com.smooth.drivecast_service.global.util.ValidationUtil;
@@ -13,6 +16,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AlertEventHandler {
 
+    private final IncidentMessageMapperFactory incidentMessageMapperFactory;
+    private final DrivingMessageMapperFactory drivingMessageMapperFactory;
     private final AlertRepeatNotifier alertRepeatNotifier;
     private final AlertSender alertSender;
 
@@ -56,9 +61,16 @@ public class AlertEventHandler {
             return;
         }
 
-        AlertMessageMapper.map(event, event.userId()).ifPresent(msg -> {
-            alertSender.sendToUser(event.userId(), msg);
-            log.info("본인 알림 전송 완료: type={}, userId={}", event.type(), event.userId());
-        });
+        var drivingContext = DrivingMappingContext.of(event);
+        var drivingMapper = drivingMessageMapperFactory.get(event.type());
+
+        if (drivingMapper.isPresent()) {
+            drivingMapper.get().map(drivingContext).ifPresent(msg ->{
+                alertSender.sendToUser(event.userId(), msg);
+                log.info("본인 알림 전송 완료: type={}, userId={}", event.type(), event.userId());
+            });
+        } else {
+            log.warn("지원하지 않는 주행 타입: {}", event.type());
+        }
     }
 }

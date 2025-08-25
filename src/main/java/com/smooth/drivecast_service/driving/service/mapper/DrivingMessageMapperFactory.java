@@ -1,7 +1,5 @@
 package com.smooth.drivecast_service.driving.service.mapper;
 
-import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
-import com.smooth.drivecast_service.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

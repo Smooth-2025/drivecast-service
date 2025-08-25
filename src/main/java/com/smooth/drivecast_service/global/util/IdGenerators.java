@@ -28,34 +28,21 @@ public class IdGenerators {
 
     /**
      * 사고 이벤트로부터 alertId 생성
+     * IncidentEvent 생성자에서 이미 필수 검증을 하므로 항상 유효한 ID 반환
      **/
-    public static Optional<String> generateIncidentAlertId(IncidentEvent event) {
+    public static String generateIncidentAlertId(IncidentEvent event) {
         return switch (event.type()) {
-            case ACCIDENT -> Optional.ofNullable(event.accidentId());
-            case OBSTACLE -> {
-                String obstacleId = String.format("obstacle-%s-%s-%s",
-                        formatCoordinate(event.latitude()),
-                        formatCoordinate(event.longitude()),
-                        sanitizeTimestamp(event.timestamp()));
-                yield Optional.of(obstacleId);
-            }
+            case ACCIDENT -> event.accidentId(); // 이미 검증됨
+            case OBSTACLE -> String.format("obstacle-%s-%s-%s",
+                    formatLatitude(event.latitude()),
+                    formatLongitude(event.longitude()),
+                    sanitizeTimestamp(event.timestamp()));
         };
     }
 
     /**
-     * 중복 방지 키 생성
-     * @param alertId 알림 ID
-     * @param userId  사용자 ID (OBSTACLE은 null 가능)
-     * @return 중복 방지 키
-     **/
-    public static String generateDedupKey(String alertId, String userId) {
-        return "alert:" + alertId + ":" + (userId != null ? userId : "anonymous");
-    }
-
-    /**
      * 주행 세션 ID 생성
-     *
-     * @param userId    사용자 ID
+     * @param userId 사용자 ID
      * @param timestamp 시각
      * @return 세션 ID
      **/
@@ -64,12 +51,27 @@ public class IdGenerators {
     }
 
     /**
-     * 좌표를 ID용 문자열로 포맷팅
-     * 37.52342 -> "3752342"
+     * 위도를 ID용 문자열로 포맷팅 (N/S 구분)
+     * 37.52342 -> "N3752342", -37.123 -> "S371230"
      **/
-    private static String formatCoordinate(Double coordinate) {
-        if(coordinate == null) return "0";
-        return coordinate.toString().replace(".", "").replace("-", "");
+    private static String formatLatitude(Double latitude) {
+        if(latitude == null) return "0";
+        
+        String prefix = latitude >= 0 ? "N" : "S";
+        String absValue = String.valueOf(Math.abs(latitude)).replace(".", "");
+        return prefix + absValue;
+    }
+
+    /**
+     * 경도를 ID용 문자열로 포맷팅 (E/W 구분)
+     * 127.123 -> "E1271230", -127.123 -> "W1271230"
+     **/
+    private static String formatLongitude(Double longitude) {
+        if(longitude == null) return "0";
+        
+        String prefix = longitude >= 0 ? "E" : "W";
+        String absValue = String.valueOf(Math.abs(longitude)).replace(".", "");
+        return prefix + absValue;
     }
 
     /**

@@ -6,9 +6,9 @@ import lombok.Value;
 
 /**
  * 사고 메시지 매핑 컨텍스트
- * 기존 AlertEvent 를 사용하여 호환성 유지
+ * IncidentEvent 로 변경
  * ====
- * event: 기존 AlertEvent
+ * event: IncidentEvent
  * recipientUserId: 수신자 ID
  * isSelfIncident: 본인 사고 여부
  **/
@@ -26,6 +26,14 @@ public class IncidentMappingContext {
                 .event(event)
                 .recipientUserId(recipientUserId)
                 .isSelfIncident(isSelf)
+                .build();
+    }
+
+    public static IncidentMappingContext of(IncidentEvent event) {
+        return IncidentMappingContext.builder()
+                .event(event)
+                .recipientUserId(null)
+                .isSelfIncident(false)
                 .build();
     }
 }

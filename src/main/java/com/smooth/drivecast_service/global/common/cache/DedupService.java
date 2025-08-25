@@ -21,7 +21,7 @@ public interface DedupService {
      * @param key 중복 방지 키
      * @return 첫 번째 요청이면 true, 중복이면 false
      **/
-    default boolean markIdFirst(String key) {
+    default boolean markIfFirst(String key) {
         return markIfFirst(key, Duration.ofMinutes(3));
     }
 
@@ -31,4 +31,26 @@ public interface DedupService {
      * @return 이미 처리되었으면 true
      **/
     boolean isAlreadyProcessed(String key);
+
+    /**
+     * 알림 중복 전송 방지 (AlertCacheService 기능 통합)
+     * @param alertId 알림 ID
+     * @param userId 사용자 ID
+     * @return 첫 번째 전송이면 true, 중복이면 false
+     **/
+    default boolean markAlertIfFirst(String alertId, String userId) {
+        String key = "alert:" + alertId + ":" + userId;
+        return markIfFirst(key, Duration.ofMinutes(3));
+    }
+
+    /**
+     * 알림이 이미 전송되었는지 확인
+     * @param alertId 알림 ID
+     * @param userId 사용자 ID
+     * @return 이미 전송되었으면 true
+     **/
+    default boolean isAlertAlreadySent(String alertId, String userId) {
+        String key = "alert:" + alertId + ":" + userId;
+        return isAlreadyProcessed(key);
+    }
 }

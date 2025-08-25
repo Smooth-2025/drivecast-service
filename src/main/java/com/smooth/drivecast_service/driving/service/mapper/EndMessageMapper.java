@@ -3,7 +3,6 @@ package com.smooth.drivecast_service.driving.service.mapper;
 import com.smooth.drivecast_service.driving.dto.DrivingMessageDto;
 import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
 import com.smooth.drivecast_service.global.exception.BusinessException;
-import com.smooth.drivecast_service.model.AlertMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

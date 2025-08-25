@@ -5,7 +5,12 @@ import lombok.Value;
 
 /**
  * 실시간 메세지 표준 Envelope (서버 내부 처리용)
- * 클라이언트에게는 payload가 그대로 전송됨
+ * 
+ * ⚠️ 현재 미사용 - 향후 메시지 메타데이터 추가 시 사용 예정
+ * 
+ * 현재: payload 직접 전송
+ * 향후: RealtimeEnvelope로 래핑하여 메타데이터 포함 전송
+ * 
  * == 서버 내부 메타데이터 ==
  * messageCategory: INCIDENT_ALERT, DRIVING_DATA 등 (서버 분류용)
  * version: v1 (서버 버전 관리용)

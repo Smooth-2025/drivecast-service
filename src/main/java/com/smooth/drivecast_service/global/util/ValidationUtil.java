@@ -1,8 +1,5 @@
 package com.smooth.drivecast_service.global.util;
 
-import com.smooth.drivecast_service.model.AlertType;
-import com.smooth.drivecast_service.model.AlertEvent;
-
 /**
  * 공통 검증 유틸리티 (정책 없는 순수 검증 로직만)
  * 가이드: global/util - 시간/검증/ID 등

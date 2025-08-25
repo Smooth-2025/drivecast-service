@@ -52,7 +52,11 @@ public class RedisPresenceService implements PresenceService {
     @Override
     public boolean isFresh(String userId, Instant refTime, Duration skew) {
         return getLastSeen(userId)
-                .map(seen -> !seen.isBefore(refTime.minus(skew)) && !seen.isAfter(refTime.plus(skew)))
+                .map(seen -> {
+                    // 시계 스큐를 고려한 범위 체크: [refTime-skew, refTime+skew]
+                    // 미래 시각 허용은 서버간 시계 차이를 고려한 설계
+                    return !seen.isBefore(refTime.minus(skew)) && !seen.isAfter(refTime.plus(skew));
+                })
                 .orElse(false);
     }
 }

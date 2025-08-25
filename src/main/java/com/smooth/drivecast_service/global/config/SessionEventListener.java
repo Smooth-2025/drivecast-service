@@ -1,5 +1,6 @@
 package com.smooth.drivecast_service.global.config;
 
+import com.smooth.drivecast_service.global.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
@@ -16,73 +17,54 @@ import java.time.Duration;
 public class SessionEventListener {
 
     private final StringRedisTemplate redisTemplate;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public SessionEventListener(@Qualifier("stringRedisTemplate") StringRedisTemplate redisTemplate) {
+    public SessionEventListener(@Qualifier("stringRedisTemplate") StringRedisTemplate redisTemplate,
+                               JwtTokenProvider jwtTokenProvider) {
         this.redisTemplate = redisTemplate;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
-    // private final JwtTokenProvider jwtTokenProvider;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        // 클라이언트에서 보낸 userId 추출(with Authorization)
-        // String token = accessor.getFirstNativeHeader("Authorization");
-
-        String userId = accessor.getFirstNativeHeader("userId");
+        // JWT 토큰에서 userId 추출 (1인 1룸 형태)
+        String token = accessor.getFirstNativeHeader("Authorization");
         String sessionId = accessor.getSessionId();
 
-        if (userId == null || userId.isBlank()) {
-            log.warn("WebSocket 연결 시 userId 누락 (sessionId={})", sessionId);
-            return;
-        }
         if (sessionId == null) {
-            log.warn("WebSocket 연결 시 sessionId 누락 (userId={})", userId);
+            log.warn("WebSocket 연결 시 sessionId 누락");
             return;
         }
 
-        // 기존 세션이 있다면 정리
-        String existingSessionKey = "session:" + userId;
-        String existingSessionId = redisTemplate.opsForValue().get(existingSessionKey);
-        if (existingSessionId != null) {
-            redisTemplate.delete("user:" + existingSessionId);
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            try {
+                String userId = jwtTokenProvider.getUserId(token);
+
+                // 1인 1룸: 기존 세션이 있다면 정리 (중복 연결 방지)
+                String existingSessionKey = "session:" + userId;
+                String existingSessionId = redisTemplate.opsForValue().get(existingSessionKey);
+                if (existingSessionId != null && !existingSessionId.equals(sessionId)) {
+                    // 기존 세션 정리
+                    redisTemplate.delete("user:" + existingSessionId);
+                    log.info("기존 세션 정리: userId={}, oldSessionId={}", userId, existingSessionId);
+                }
+
+                // 새 세션 매핑 저장 (1인 1룸)
+                redisTemplate.opsForValue().set(existingSessionKey, sessionId, Duration.ofHours(3));
+                redisTemplate.opsForValue().set("user:" + sessionId, userId, Duration.ofHours(3));
+
+                log.info("[CONNECT] userId={}, sessionId={} (1인 1룸)", userId, sessionId);
+            } catch (Exception e) {
+                log.warn("JWT 파싱 실패: sessionId={}, error={}", sessionId, e.getMessage());
+                // JWT 파싱 실패 시 연결 거부하지 않고 경고만 로그
+            }
+        } else {
+            log.warn("Authorization 헤더가 없거나 Bearer 토큰이 아닙니다: sessionId={}", sessionId);
+            // 토큰 없어도 연결은 허용하되 경고 로그
         }
-
-        // 새 세션 매핑 저장
-        redisTemplate.opsForValue().set(existingSessionKey, sessionId, Duration.ofHours(3));
-        redisTemplate.opsForValue().set("user:" + sessionId, userId, Duration.ofHours(3));
-
-        log.info("[CONNECT] userId={}, sessionId={}", userId, sessionId);
-
-//        if (token != null && token.startsWith("Bearer ")) {
-//            token = token.substring(7);
-//            try {
-//                String userId = jwtTokenProvider.getUserId(token);
-//                String sessionId = accessor.getSessionId();
-//
-//                if (sessionId == null) {
-//                    log.warn("SessionId가 null입니다. userId={}", userId);
-//                    return;
-//                }
-//
-//                // 기존 세션이 있다면 정리
-//                String existingSessionKey = "session:" + userId;
-//                String existingSessionId = redisTemplate.opsForValue().get(existingSessionKey);
-//                if (existingSessionId != null) {
-//                    redisTemplate.delete("user:" + existingSessionId);
-//                }
-//
-//                // 새 세션 매핑 저장
-//                redisTemplate.opsForValue().set(existingSessionKey, sessionId, Duration.ofHours(3));
-//                redisTemplate.opsForValue().set("user:" + sessionId, userId, Duration.ofHours(3));
-//
-//                log.info("WebSocket CONNECT: userId={}, sessionId={}", userId, sessionId);
-//            } catch (Exception e) {
-//                log.warn("JWT 파싱 실패: {}", e.getMessage());
-//            }
-//        } else {
-//            log.warn("Authorization 헤더 없음");
-//        }
     }
 
     @EventListener

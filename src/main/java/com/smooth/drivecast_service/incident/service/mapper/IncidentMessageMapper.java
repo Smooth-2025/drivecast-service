@@ -23,4 +23,15 @@ public interface IncidentMessageMapper {
      * @return 변환된 AlertMessageDto, 실패시 empty
      **/
     Optional<IncidentMessageDto> map(IncidentMappingContext context);
+
+    /**
+     * 사고 이벤트를 특정 사용자용 알림 메시지로 변환
+     * @param context 매핑 컨텍스트
+     * @param targetUserId 대상 사용자 ID
+     * @return 변환된 AlertMessageDto, 실패시 empty
+     **/
+    default Optional<IncidentMessageDto> map(IncidentMappingContext context, String targetUserId) {
+        var contextWithUser = IncidentMappingContext.of(context.getEvent(), targetUserId);
+        return map(contextWithUser);
+    }
 }

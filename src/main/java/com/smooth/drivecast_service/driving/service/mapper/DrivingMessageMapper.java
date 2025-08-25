@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * 주행 메시지 매핑 전략 인터페이스
- * 기존 AlertMessageDto 형식 유지
+ * DrivingMessageDto 형식
  **/
 public interface DrivingMessageMapper {
 

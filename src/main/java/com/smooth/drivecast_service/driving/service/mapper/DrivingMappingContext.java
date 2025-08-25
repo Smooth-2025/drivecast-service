@@ -6,9 +6,9 @@ import lombok.Value;
 
 /**
  * 주행 메시지 매핑 컨텍스트
- * 기존 AlertEvent를 사용하여 호환성 유지
+ * DrivingEvent
  * ====
- * event: 기존 AlertEvent
+ * event: DrivingEvent
  **/
 @Value
 @Builder

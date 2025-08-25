@@ -25,7 +25,7 @@ public record IncidentEvent(
             throw new BusinessException(IncidentErrorCode.INVALID_INCIDENT_TYPE);
         }
         if (!ValidationUtil.isValidCoordinate(latitude,longitude)) {
-            throw new BusinessException(IncidentErrorCode.MISSING_LOCATION);
+            throw new BusinessException(IncidentErrorCode.INVALID_LOCATION_COORDINATES);
         }
         if (!ValidationUtil.isNotBlank(timestamp)) {
             throw new BusinessException(IncidentErrorCode.MISSING_TIMESTAMP);

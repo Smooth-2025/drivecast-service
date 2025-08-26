@@ -18,6 +18,7 @@ public class DrivingEventHandler {
 
     private final DrivingMessageMapperFactory drivingMessageMapperFactory;
     private final RealtimePublisher publisher;
+    private final DrivingSessionManager sessionManager;
 
     public void handle(DrivingEvent event) {
         log.info("주행 이벤트 처리 시작: type={}, userId={}, timestamp={}",
@@ -25,6 +26,7 @@ public class DrivingEventHandler {
 
         try {
             sendToSelf(event);
+            updateActiveSession(event);
 
             log.info("주행 이벤트 처리 완료: type={}, userId={}",
                     event.type(), event.userId());
@@ -65,6 +67,30 @@ public class DrivingEventHandler {
         } catch (Exception e) {
             log.error("주행 알림 전송 중 오류 발생: userId={}", event.userId(), e);
             throw new BusinessException(DrivingErrorCode.DRIVING_NOTIFICATION_FAILED, e.getMessage());
+        }
+    }
+
+    /**
+     * 활성 세션 업데이트
+     **/
+    private void updateActiveSession(DrivingEvent event) {
+        try {
+            switch (event.type()) {
+                case START -> {
+                    sessionManager.addActiveUser(event.userId());
+                    log.debug("활성 세션 추가: userId={}", event.userId());
+                }
+                case END -> {
+                    sessionManager.removeActiveUser(event.userId());
+                    log.debug("활성 세션 제거: userId={}", event.userId());
+                }
+                default -> {
+                    // 다른 이벤트는 세션 상태 변경 없음
+                }
+            }
+        } catch (Exception e) {
+            log.warn("활성 세션 업데이트 실패: userId={}, type={}, 오류={}", 
+                    event.userId(), event.type(), e.getMessage());
         }
     }
 }

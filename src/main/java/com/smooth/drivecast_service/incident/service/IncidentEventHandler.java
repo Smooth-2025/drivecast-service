@@ -6,7 +6,7 @@ import com.smooth.drivecast_service.global.common.notification.RealtimePublisher
 import com.smooth.drivecast_service.global.exception.BusinessException;
 import com.smooth.drivecast_service.global.util.IdGenerators;
 import com.smooth.drivecast_service.global.util.KoreanTimeUtil;
-import com.smooth.drivecast_service.incident.dto.IncidentDestinations;
+import com.smooth.drivecast_service.incident.constants.IncidentDestinations;
 import com.smooth.drivecast_service.incident.dto.IncidentEvent;
 import com.smooth.drivecast_service.incident.exception.IncidentErrorCode;
 import com.smooth.drivecast_service.incident.service.mapper.IncidentMappingContext;

@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.driving.service;
 
-import com.smooth.drivecast_service.driving.dto.DrivingDestinations;
+import com.smooth.drivecast_service.driving.constants.DrivingDestinations;
 import com.smooth.drivecast_service.driving.dto.DrivingEvent;
 import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
 import com.smooth.drivecast_service.driving.service.mapper.DrivingMappingContext;

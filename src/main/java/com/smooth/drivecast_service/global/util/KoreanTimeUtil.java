@@ -31,10 +31,10 @@ public class KoreanTimeUtil {
     }
 
     /**
-     * Instant를 한국시 기준 위치 키 형식으로 변환
-     * 입력: Instant
-     * 출력: "location:20250801111045" (한국시 기준)
-     */
+     * UTC Instant를 KST 기반 location 키로 변환
+     * @param instant UTC 시각
+     * @return location 키 (예: location:20250822143000)
+     **/
     public static String toLocationKey(Instant instant) {
         ZonedDateTime koreanTime = instant.atZone(KOREA_ZONE);
         String timeString = koreanTime.format(LOCATION_KEY_FORMATTER);
@@ -42,19 +42,22 @@ public class KoreanTimeUtil {
     }
 
     /**
-     * 현재 한국시 기준 위치 키 생성
-     */
+     * 현재 시각의 location 키 생성
+     * @return 현재 location 키
+     **/
     public static String getCurrentLocationKey() {
         return toLocationKey(Instant.now());
     }
 
     /**
-     * 한국시 문자열을 위치 키로 직접 변환
-     * 입력: "2025-08-04T17:03:00"
-     * 출력: "location:20250804170300"
-     */
+     * KST 문자열을 location 키로 변환
+     * @param koreanTimeString KST 문자열 (예: "2025-08-22T14:30:00")
+     * @return location 키
+     **/
     public static String koreanTimeToLocationKey(String koreanTimeString) {
-        Instant instant = parseKoreanTime(koreanTimeString);
-        return toLocationKey(instant);
+        LocalDateTime localDateTime = LocalDateTime.parse(koreanTimeString);
+        ZonedDateTime koreanTime = localDateTime.atZone(KOREA_ZONE);
+        String timeString = koreanTime.format(LOCATION_KEY_FORMATTER);
+        return "location:" + timeString;
     }
 }

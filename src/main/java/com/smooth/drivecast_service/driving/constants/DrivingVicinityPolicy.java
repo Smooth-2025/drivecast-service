@@ -20,6 +20,9 @@ public class DrivingVicinityPolicy {
     public static final String TRAIT_HOT_PREFIX = "trait:";
     public static final String TRAIT_WARM_PREFIX = "trait:warm:";
     public static final String DRIVING_ACTIVE_SET = "driving:active";
+    
+    // 활성 세트 TTL (초)
+    public static final int ACTIVE_SET_TTL_SEC = 60 * 60; // 1시간
 
     private DrivingVicinityPolicy() {}
 }

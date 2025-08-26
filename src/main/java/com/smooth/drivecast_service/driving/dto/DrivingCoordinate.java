@@ -3,12 +3,12 @@ package com.smooth.drivecast_service.driving.dto;
 /**
  * 지리적 좌표 DTO
  **/
-public record GeoCoordinate(double latitude, double longitude) {
+public record DrivingCoordinate(double latitude, double longitude) {
 
     /**
      * 유효한 좌표인지 검증하는 생성자
      **/
-    public GeoCoordinate {
+    public DrivingCoordinate {
         if (!isValidLatitude(latitude)) {
             throw new IllegalArgumentException("위도는 -90.0 ~ 90.0 범위여야 합니다: " + latitude);
         }

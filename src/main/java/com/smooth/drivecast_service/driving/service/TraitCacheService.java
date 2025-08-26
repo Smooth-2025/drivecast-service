@@ -1,6 +1,7 @@
 package com.smooth.drivecast_service.driving.service;
 
 import com.smooth.drivecast_service.driving.constants.DrivingVicinityPolicy;
+import com.smooth.drivecast_service.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +25,8 @@ public class TraitCacheService {
 
     @Qualifier("stringRedisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
-    // TODO: TraitApiService 의존성 추가 (T5.2.2에서 구현)
+
+    private final DrivingTraitService drivingTraitService;
 
     /**
      * 새벽 1시 성향 워밍 캐시 실행
@@ -35,16 +37,19 @@ public class TraitCacheService {
         log.info("성향 워밍 캐시 시작");
 
         try {
-            // TODO: T5.2.2에서 TraitApiService.exportTraits() 호출
-            // var exportResponse = traitApiService.exportTraits();
-            // if (exportResponse != null && exportResponse.hasData()) {
-            //     var savedCount = saveToWarmCache(exportResponse.data());
-            //     log.info("성향 워밍 캐시 완료: 저장={}명", savedCount);
-            // }
+            var traits = drivingTraitService.exportTraits();
+            if (!traits.isEmpty()) {
+                saveToWarmCache(traits);
+                log.info("성향 워밍 캐시 완료: 저장={}명", traits.size());
+            } else {
+                log.warn("성향 워밍 캐시: 저장할 데이터 없음");
+            }
 
             var elapsed = System.currentTimeMillis() - startTime;
-            log.info("성향 워밍 캐시 완료: 소요={}ms (TODO: API 연동 필요)", elapsed);
+            log.info("성향 워밍 캐시 소요시간: {}ms", elapsed);
 
+        } catch (BusinessException e) {
+            log.error("성향 워밍 캐시 비즈니스 오류: {}", e.getMessage());
         } catch (Exception e) {
             log.error("성향 워밍 캐시 실패", e);
         }
@@ -80,21 +85,26 @@ public class TraitCacheService {
             }
         }
 
-        // 3. 여전히 미스 → API 조회 (T5.2.2에서 구현)
+        // 3. 여전히 미스 → API 조회
         var apiMissUsers = userIds.stream()
                 .filter(userId -> !result.containsKey(userId))
                 .toList();
 
         if (!apiMissUsers.isEmpty()) {
-            // TODO: T5.2.2에서 TraitApiService 호출
-            // var apiResults = getFromApi(apiMissUsers);
-            // result.putAll(apiResults);
-            // saveToHotCache(apiResults);
-            log.debug("API 조회 필요: {}명 (TODO: API 연동 필요)", apiMissUsers.size());
+            // 순환 참조 해결: 직접 API 호출
+            var apiResults = drivingTraitService.getTraitsFromApi(apiMissUsers);
+            result.putAll(apiResults);
+
+            // API 결과를 핫 캐시에 저장
+            if (!apiResults.isEmpty()) {
+                saveToHotCache(apiResults);
+            }
+
+            log.debug("API 조회 완료: {}명", apiResults.size());
         }
 
         var elapsed = System.currentTimeMillis() - startTime;
-        log.debug("성향 조회 완료: 요청={}명, 핫={}명, 워밍={}명, API미스={}명, 소요={}ms",
+        log.debug("성향 조회 완료: 요청={}명, 핫={}명, 워밍={}명, API={}명, 소요={}ms",
                 userIds.size(), hotResults.size(),
                 hotMissUsers.size() - apiMissUsers.size(), apiMissUsers.size(), elapsed);
 

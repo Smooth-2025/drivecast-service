@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.global.common.location;
 
-import com.smooth.drivecast_service.driving.dto.GeoCoordinate;
+import com.smooth.drivecast_service.driving.dto.DrivingCoordinate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +29,7 @@ public class WindowGeoSearchAdapter {
     /**
      * 여러 키에서 반경 검색 후 합집합 반환
      **/
-    public Set<String> searchAcrossKeys(List<String> locationKeys, GeoCoordinate center, int radiusMeters) {
+    public Set<String> searchAcrossKeys(List<String> locationKeys, DrivingCoordinate center, int radiusMeters) {
         if (locationKeys == null || locationKeys.isEmpty() || center == null) {
             return Set.of();
         }
@@ -51,7 +51,7 @@ public class WindowGeoSearchAdapter {
         return allUsers;
     }
 
-    private Set<String> searchInKey(String locationKey, GeoCoordinate center, int radiusMeters) {
+    private Set<String> searchInKey(String locationKey, DrivingCoordinate center, int radiusMeters) {
         Set<String> users = new HashSet<>();
 
         try {

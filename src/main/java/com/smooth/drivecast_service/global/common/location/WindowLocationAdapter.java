@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.global.common.location;
 
-import com.smooth.drivecast_service.driving.dto.GeoCoordinate;
+import com.smooth.drivecast_service.driving.dto.DrivingCoordinate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +25,7 @@ public class WindowLocationAdapter {
     /**
      * 여러 키에서 사용자 위치 조회
      **/
-    public Optional<GeoCoordinate> findUserLocation(List<String> locationKeys, String userId) {
+    public Optional<DrivingCoordinate> findUserLocation(List<String> locationKeys, String userId) {
         if (locationKeys == null || locationKeys.isEmpty() || userId == null) {
             return Optional.empty();
         }
@@ -36,7 +36,7 @@ public class WindowLocationAdapter {
 
                 if (positions != null && !positions.isEmpty() && positions.getFirst() != null) {
                     var point = positions.getFirst();
-                    var coordinate = new GeoCoordinate(point.getY(), point.getX());
+                    var coordinate = new DrivingCoordinate(point.getY(), point.getX());
 
                     log.debug("사용자 위치 발견: userId={}, key={}, 좌표={}", userId, key, coordinate);
                     return Optional.of(coordinate);

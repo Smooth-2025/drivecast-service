@@ -1,7 +1,7 @@
 package com.smooth.drivecast_service.incident.service.mapper;
 
 import com.smooth.drivecast_service.global.exception.BusinessException;
-import com.smooth.drivecast_service.incident.dto.IncidentMessageDto;
+import com.smooth.drivecast_service.incident.dto.IncidentResponseDto;
 import com.smooth.drivecast_service.incident.exception.IncidentErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,10 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
     }
 
     @Override
-    public Optional<IncidentMessageDto> map(IncidentMappingContext context) {
+    public Optional<IncidentResponseDto> map(IncidentMappingContext context) {
         try {
             if (context.isSelfIncident()) {
-                return Optional.of(new IncidentMessageDto(
+                return Optional.of(new IncidentResponseDto(
                         "accident",
                         Map.of(
                                 "title", "큰 사고가 발생했습니다!",
@@ -30,7 +30,7 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
                         )
                 ));
             } else {
-                return Optional.of(new IncidentMessageDto(
+                return Optional.of(new IncidentResponseDto(
                         "accident-nearby",
                         Map.of(
                                 "title", "전방 사고 발생!",

@@ -15,10 +15,15 @@ public enum DrivingErrorCode implements ErrorCode {
     INVALID_TIMESTAMP_FORMAT(HttpStatus.BAD_REQUEST, 2004, "타임스탬프 형식이 올바르지 않습니다."),
     INVALID_USER_ID_FORMAT(HttpStatus.BAD_REQUEST, 2005, "사용자 ID 형식이 올바르지 않습니다."),
 
-    // 2051~2099: 서버 오류 (매핑/처리/전송 실패)
+    // 2051~2060: 서버 오류 (매핑/처리/전송 실패)
     DRIVING_EVENT_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2051, "주행 이벤트 처리 중 오류가 발생했습니다."),
     DRIVING_MESSAGE_MAPPING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2052, "주행 메시지 매핑 중 오류가 발생했습니다."),
-    DRIVING_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2053, "주행 알림 전송 중 오류가 발생했습니다.");
+    DRIVING_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2053, "주행 알림 전송 중 오류가 발생했습니다."),
+
+    // 2061~2079: 성향 관련 오류
+    TRAIT_API_CONNECTION_FAILED(HttpStatus.SERVICE_UNAVAILABLE, 2061, "성향 서비스 연결에 실패했습니다."),
+    TRAIT_BULK_EXPORT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2062, "성향 벌크 조회에 실패했습니다."),
+    TRAIT_CACHE_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2063, "성향 캐시 작업에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer code;

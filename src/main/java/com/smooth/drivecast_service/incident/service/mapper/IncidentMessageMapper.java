@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.incident.service.mapper;
 
-import com.smooth.drivecast_service.incident.dto.IncidentMessageDto;
+import com.smooth.drivecast_service.incident.dto.IncidentResponseDto;
 
 import java.util.Optional;
 
@@ -22,7 +22,7 @@ public interface IncidentMessageMapper {
      * @param context 매핑 컨텍스트
      * @return 변환된 AlertMessageDto, 실패시 empty
      **/
-    Optional<IncidentMessageDto> map(IncidentMappingContext context);
+    Optional<IncidentResponseDto> map(IncidentMappingContext context);
 
     /**
      * 사고 이벤트를 특정 사용자용 알림 메시지로 변환
@@ -30,7 +30,7 @@ public interface IncidentMessageMapper {
      * @param targetUserId 대상 사용자 ID
      * @return 변환된 AlertMessageDto, 실패시 empty
      **/
-    default Optional<IncidentMessageDto> map(IncidentMappingContext context, String targetUserId) {
+    default Optional<IncidentResponseDto> map(IncidentMappingContext context, String targetUserId) {
         var contextWithUser = IncidentMappingContext.of(context.getEvent(), targetUserId);
         return map(contextWithUser);
     }

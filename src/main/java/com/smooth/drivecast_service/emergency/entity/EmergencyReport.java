@@ -19,7 +19,7 @@ public class EmergencyReport {
     private Long id;
 
     @Column(name = "accident_id", nullable = false)
-    private Long accidentId;
+    private String accidentId;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;

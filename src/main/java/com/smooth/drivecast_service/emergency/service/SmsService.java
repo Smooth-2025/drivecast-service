@@ -16,7 +16,7 @@ public class SmsService {
     
     private final TwilioConfig twilioConfig;
     
-    @Value("${TWILIO_TEST_NUMBER}")
+    @Value("${test.phone-number}")
     private String testPhoneNumber;
     
     public boolean send119(String message) {

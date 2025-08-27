@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface EmergencyReportRepository extends JpaRepository<EmergencyReport, Long> {
 
-    boolean existsByAccidentIdAndUserIdAndEmergencyNotifiedTrue(Long accidentId, Long userId);
+    boolean existsByAccidentIdAndUserIdAndEmergencyNotifiedTrue(String accidentId, Long userId);
 
     List<EmergencyReport> findByUserIdOrderByReportTimeDesc(Long userId);
 }

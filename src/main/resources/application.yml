@@ -1,8 +1,8 @@
 spring:
   application:
-    name: alert-service
+    name: drivecast-service
   profiles:
-    active: dev  # 기본 프로파일 설정
+    active: prod
 
   session:
     redis:
@@ -34,4 +34,4 @@ server:
 logging:
   level:
     root: INFO
-    com.smooth.alert_service: INFO
+    com.smooth.drivecast_service: INFO

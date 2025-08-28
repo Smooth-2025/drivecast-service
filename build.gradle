@@ -56,6 +56,10 @@ dependencies {
 	// Twilio SMS
     implementation 'com.twilio.sdk:twilio:10.6.3'
 
+	// MapStruct
+	implementation 'org.mapstruct:mapstruct:1.6.3'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

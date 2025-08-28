@@ -19,7 +19,7 @@ public class EmergencyReport {
     private Long id;
 
     @Column(name = "accident_id", nullable = false)
-    private Long accidentId;
+    private String accidentId;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -32,6 +32,12 @@ public class EmergencyReport {
 
     @Column(name = "report_time", nullable = false)
     private LocalDateTime reportTime;
+
+    @Column(name = "latitude", nullable = true, precision = 8, scale = 5)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = true, precision = 8, scale = 5)
+    private Double longitude;
 
     @PrePersist
     protected void onCreate() {

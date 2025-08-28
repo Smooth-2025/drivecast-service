@@ -74,6 +74,19 @@ public class EmergencyReportService {
         
         boolean shouldNotify = isEmergencyReportRequested(req);
         report.setEmergencyNotified(shouldNotify);
+        
+        if (shouldNotify) {
+            try {
+                AccidentInfoDto accidentInfo = getAccidentInfo(req.getAccidentId());
+                if (accidentInfo != null) {
+                    report.setLatitude(accidentInfo.getLatitude());
+                    report.setLongitude(accidentInfo.getLongitude());
+                }
+            } catch (Exception e) {
+                log.warn("사고 정보 조회 실패 - 위치 정보 없이 저장: accidentId={}", req.getAccidentId());
+            }
+        }
+        
         return emergencyReportRepository.save(report);
     }
 
@@ -188,10 +201,13 @@ public class EmergencyReportService {
                 report.getUserId(),
                 report.getEmergencyNotified(),
                 report.getFamilyNotified(),
-                report.getReportTime()
+                report.getReportTime(),
+                report.getLatitude(),
+                report.getLongitude()
             ))
             .toList();
     }
+    
     
     private String formatGender(String gender) {
         if (gender == null || gender.trim().isEmpty()) {

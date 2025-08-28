@@ -49,3 +49,11 @@ logging:
     com.smooth.drivecast_service: INFO
     org.springframework.data.redis: WARN
     org.hibernate: WARN
+
+twilio:
+  account-sid: ${TWILIO_SID}
+  auth-token: ${TWILIO_TOKEN}
+  phone-number: ${TWILIO_NUMBER}
+
+test:
+  phone-number: ${TWILIO_TEST_NUMBER}

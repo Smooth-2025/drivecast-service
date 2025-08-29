@@ -1,5 +1,6 @@
 package com.smooth.drivecast_service.emergency.feign.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record EmergencyReportDto(
@@ -9,7 +10,7 @@ public record EmergencyReportDto(
         Boolean emergencyNotified,
         Boolean familyNotified,
         LocalDateTime reportTime,
-        Double latitude,
-        Double longitude
+        BigDecimal latitude,
+        BigDecimal longitude
 ) {
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,10 +35,10 @@ public class EmergencyReport {
     private LocalDateTime reportTime;
 
     @Column(name = "latitude", nullable = true, precision = 8, scale = 5)
-    private Double latitude;
+    private BigDecimal latitude;
 
     @Column(name = "longitude", nullable = true, precision = 8, scale = 5)
-    private Double longitude;
+    private BigDecimal longitude;
 
     @PrePersist
     protected void onCreate() {

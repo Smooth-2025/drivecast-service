@@ -11,20 +11,21 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 유저 서비스 성향 조회 Feign 클라이언트
  */
 @FeignClient(
-        name = "user-service",
-        url = "${app.client.user-service.url}"
+        name = "driving-analysis-service",
+        url = "${app.client.driving-analysis-service.url}",
+        path = "/internal/v1"
 )
 public interface UserTraitClient {
 
     /**
      * 단건 성향 조회
      */
-    @GetMapping("/internal/v1/traits/{userId}")
+    @GetMapping("/characters/{userId}")
     TraitResponseDto getTrait(@PathVariable String userId);
 
     /**
      * 벌크 성향 조회
      */
-    @GetMapping("/internal/v1/traits/bulk")
+    @GetMapping("/characters")
     TraitBulkResponseDto getTraitsBulk(@RequestParam(defaultValue = "true") boolean hasCharacter);
 }

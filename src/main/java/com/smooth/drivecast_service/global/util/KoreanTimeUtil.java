@@ -13,20 +13,45 @@ public class KoreanTimeUtil {
 
     private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter KOREAN_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final DateTimeFormatter KOREAN_FORMATTER_NO_SECONDS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final DateTimeFormatter LOCATION_KEY_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     /**
      * 한국시 문자열을 Instant로 변환
-     * 입력: "2025-08-04T17:03:00" (한국시)
+     * 입력: "2025-08-04T17:03:00" 또는 "2025-08-04T17:03" (한국시)
      * 출력: Instant (UTC)
      */
     public static Instant parseKoreanTime(String koreanTimeString) {
+        try {
+            LocalDateTime localDateTime;
+            
+            // 먼저 초가 포함된 형태로 파싱 시도
+            try {
+                localDateTime = LocalDateTime.parse(koreanTimeString, KOREAN_FORMATTER);
+            } catch (Exception e) {
+                // 초가 없는 형태로 파싱 시도
+                localDateTime = LocalDateTime.parse(koreanTimeString, KOREAN_FORMATTER_NO_SECONDS);
+            }
+            
+            ZonedDateTime koreanTime = localDateTime.atZone(KOREA_ZONE);
+            return koreanTime.toInstant();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("한국시 파싱 실패: " + koreanTimeString, e);
+        }
+    }
+
+    /**
+     * Incident 전용 - 초단위까지 필수인 한국시 문자열을 Instant로 변환
+     * 입력: "2025-08-04T17:03:00" (한국시, 초 필수)
+     * 출력: Instant (UTC)
+     */
+    public static Instant parseKoreanTimeWithSeconds(String koreanTimeString) {
         try {
             LocalDateTime localDateTime = LocalDateTime.parse(koreanTimeString, KOREAN_FORMATTER);
             ZonedDateTime koreanTime = localDateTime.atZone(KOREA_ZONE);
             return koreanTime.toInstant();
         } catch (Exception e) {
-            throw new IllegalArgumentException("한국시 파싱 실패: " + koreanTimeString, e);
+            throw new IllegalArgumentException("한국시 파싱 실패 (초단위 필수): " + koreanTimeString, e);
         }
     }
 

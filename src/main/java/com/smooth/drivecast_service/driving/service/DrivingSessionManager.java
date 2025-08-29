@@ -1,7 +1,7 @@
 package com.smooth.drivecast_service.driving.service;
 
 import com.smooth.drivecast_service.driving.constants.DrivingVicinityPolicy;
-import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,11 +16,13 @@ import java.util.concurrent.TimeUnit;
  **/
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DrivingSessionManager {
 
-    @Qualifier("stringRedisTemplate")
     private final StringRedisTemplate stringRedisTemplate;
+
+    public DrivingSessionManager(@Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
 
     /**
      * 활성 세트에 사용자 추가

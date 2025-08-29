@@ -25,6 +25,7 @@ public class AccidentMessageMapper implements  IncidentMessageMapper{
                 return Optional.of(new IncidentResponseDto(
                         "accident",
                         Map.of(
+                                "accidentId", context.getEvent().accidentId(),
                                 "title", "큰 사고가 발생했습니다!",
                                 "content", "차량에 큰 사고가 감지되었습니다. 부상이 있다면 즉시 구조를 요청하세요."
                         )

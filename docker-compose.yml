@@ -22,6 +22,9 @@ services:
       - DB_USER=${DB_USER:-drivecast}
       - DB_PASSWORD=${DB_PASSWORD}
 
+      # OpenFeign
+      - CLIENT_USER=${CLIENT_USER}
+
       # JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
@@ -63,23 +66,23 @@ services:
       timeout: 3s
       retries: 3
 
-  # 위치 데이터용 Valkey (Redis 호환) - AWS ElastiCache 사용시 주석 처리
-  valkey:
-    image: valkey/valkey:7.2-alpine
-    container_name: valkey
-    volumes:
-      - valkey-data:/data
-    networks:
-      - drivecast-network
-    restart: unless-stopped
-    command: valkey-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    profiles:
-      - local  # 로컬 개발시에만 실행
+#  # 위치 데이터용 Valkey (Redis 호환) - AWS ElasticCache 사용시 주석 처리
+#  valkey:
+#    image: valkey/valkey:7.2-alpine
+#    container_name: valkey
+#    volumes:
+#      - valkey-data:/data
+#    networks:
+#      - drivecast-network
+#    restart: unless-stopped
+#    command: valkey-server --appendonly yes
+#    healthcheck:
+#      test: ["CMD", "valkey-cli", "ping"]
+#      interval: 10s
+#      timeout: 3s
+#      retries: 3
+#    profiles:
+#      - local # 로컬 개발시에만 실행
 
   # MySQL Database
   mysql-db:

@@ -31,6 +31,17 @@ spring:
         format_sql: false
         show_sql: false
 
+mock:
+  user-service:
+    enabled: true # 유저 서비스 feign 개발 전까지 사용
+
+app:
+  client:
+    user-service:
+      url: ${CLIENT_USER}
+    driving-analysis-service:
+      url: ${CLIENT_DRIVING_ANALYSIS}
+
 jwt:
   secret: ${JWT_SECRET}  # 환경변수 필수
   expiration: ${JWT_EXPIRATION:86400000}  # 24시간 기본값
@@ -45,10 +56,26 @@ valkey:
 
 logging:
   level:
-    org.springframework.web: WARN
+    root: INFO
+    # 우리 서비스 로그는 INFO 레벨 (운영 환경)
     com.smooth.drivecast_service: INFO
+    # 주요 비즈니스 로직은 DEBUG로 상세 추적 가능
+    com.smooth.drivecast_service.driving.service.DrivingBroadcastScheduler: DEBUG
+    com.smooth.drivecast_service.driving.service.DrivingVicinityService: DEBUG
+    com.smooth.drivecast_service.driving.service.TraitCacheService: INFO
+    # Redis 연결 로그 최소화 (운영 환경)
     org.springframework.data.redis: WARN
+    org.springframework.data.redis.core.RedisConnectionUtils: ERROR
+    # HTTP 관련 로그 최소화 (운영 환경)
+    org.springframework.web: WARN
+    org.springframework.web.servlet.DispatcherServlet: WARN
+    # Hibernate 로그 최소화 (운영 환경)
     org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    # Feign 클라이언트 로그 최소화 (운영 환경)
+    feign: WARN
+    # 스케줄러 로그 제어
+    org.springframework.scheduling: INFO
 
 twilio:
   account-sid: ${TWILIO_SID}

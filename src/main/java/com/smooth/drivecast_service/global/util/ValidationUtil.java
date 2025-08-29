@@ -50,6 +50,19 @@ public final class ValidationUtil {
     }
 
     /**
+     * Incident 전용 엄격한 타임스탬프 검증 (초단위 필수)
+     * @param timestamp 타임스탬프 문자열
+     * @return "yyyy-MM-ddTHH:mm:ss" 형식이면 true
+     **/
+    public static boolean hasValidIncidentTimestampFormat(String timestamp) {
+        if (timestamp == null || timestamp.isBlank()) return false;
+        // "2025-08-27T09:23:45" 형태 (19자) 체크
+        if (timestamp.length() != 19) return false;
+        // 기본 패턴 체크: yyyy-MM-ddTHH:mm:ss
+        return timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}");
+    }
+
+    /**
      * 숫자 범위 검증 (정책 없음)
      * @param value 검증할 값
      * @param min 최소값

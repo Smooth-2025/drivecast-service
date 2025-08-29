@@ -13,5 +13,4 @@ public class DrivecastServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DrivecastServiceApplication.class, args);
 	}
-
 }

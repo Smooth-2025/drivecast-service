@@ -33,7 +33,7 @@ spring:
 
 mock:
   user-service:
-    enabled: true # 유저 서비스 feign 개발 전까지 사용
+    enabled: false # 유저 서비스 feign 개발 전까지 사용
 
 app:
   client:
@@ -76,3 +76,11 @@ logging:
     feign: WARN
     # 스케줄러 로그 제어
     org.springframework.scheduling: INFO
+
+twilio:
+  account-sid: ${TWILIO_SID}
+  auth-token: ${TWILIO_TOKEN}
+  phone-number: ${TWILIO_NUMBER}
+
+test:
+  phone-number: ${TWILIO_TEST_NUMBER}

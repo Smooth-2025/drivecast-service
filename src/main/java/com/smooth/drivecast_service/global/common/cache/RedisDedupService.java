@@ -53,4 +53,42 @@ public class RedisDedupService implements DedupService {
             return false;
         }
     }
+
+    @Override
+    public void storeAccidentInfo(String accidentId, String accidentData, Duration ttl) {
+        if (accidentId == null || accidentId.isBlank() || accidentData == null) {
+            log.warn("사고 정보 저장 실패: accidentId={}, accidentData null={}", 
+                    accidentId, accidentData == null);
+            return;
+        }
+
+        try {
+            String key = "accident:" + accidentId;
+            stringRedisTemplate.opsForValue().set(key, accidentData, ttl);
+            log.info("사고 정보 저장 완료: accidentId={}, ttl={}", accidentId, ttl);
+        } catch (Exception e) {
+            log.error("사고 정보 저장 실패: accidentId={}, ttl={}", accidentId, ttl, e);
+        }
+    }
+
+    @Override
+    public String getAccidentInfo(String accidentId) {
+        if (accidentId == null || accidentId.isBlank()) {
+            return null;
+        }
+
+        try {
+            String key = "accident:" + accidentId;
+            String result = stringRedisTemplate.opsForValue().get(key);
+            if (result != null) {
+                log.debug("사고 정보 조회 성공: accidentId={}", accidentId);
+            } else {
+                log.warn("사고 정보 없음: accidentId={}", accidentId);
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("사고 정보 조회 실패: accidentId={}", accidentId, e);
+            return null;
+        }
+    }
 }

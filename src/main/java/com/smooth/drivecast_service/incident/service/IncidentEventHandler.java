@@ -1,5 +1,6 @@
 package com.smooth.drivecast_service.incident.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smooth.drivecast_service.global.common.cache.DedupService;
 import com.smooth.drivecast_service.global.common.location.VicinityService;
 import com.smooth.drivecast_service.global.common.notification.RealtimePublisher;
@@ -28,6 +29,7 @@ public class IncidentEventHandler {
     private final RealtimePublisher publisher;
     private final VicinityService vicinityService;
     private final DedupService dedupService;
+    private final ObjectMapper objectMapper;
 
     public void handle(IncidentEvent event) {
         log.info("사고 이벤트 처리 시작: type={}, userId={}, lat={}, lng={}, timestamp={}",
@@ -36,6 +38,8 @@ public class IncidentEventHandler {
         try {
             var alertId = IdGenerators.generateIncidentAlertId(event);
 
+            // 사고 정보 캐시 저장 추가
+            storeAccidentInfo(event, alertId);
             // 1. 즉시 알림 전송
             sendImmediateNotifications(event, alertId);
 
@@ -152,6 +156,16 @@ public class IncidentEventHandler {
 
         } catch (Exception e) {
             log.error("반경 내 알림 전송 중 오류: type={}, alertId={}", event.type(), alertId, e);
+        }
+    }
+
+    private void storeAccidentInfo(IncidentEvent event, String alertId) {
+        try {
+            String accidentJson = objectMapper.writeValueAsString(event);
+            dedupService.storeAccidentInfo(alertId, accidentJson);
+            log.info("사고 정보 저장 완료: alertId={}, type={}", alertId, event.type());
+        } catch (Exception e) {
+            log.error("사고 정보 저장 실패: alertId={}, type={}", alertId, event.type(), e);
         }
     }
 }

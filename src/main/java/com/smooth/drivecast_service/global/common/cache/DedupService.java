@@ -53,4 +53,28 @@ public interface DedupService {
         String key = "alert:" + alertId + ":" + userId;
         return isAlreadyProcessed(key);
     }
+
+    /**
+     * 사고 정보 저장
+     * @param accidentId 사고 ID
+     * @param accidentData 사고 정보 JSON
+     * @param ttl 저장 기간
+     */
+    void storeAccidentInfo(String accidentId, String accidentData, Duration ttl);
+
+    /**
+     * 기본 TTL(1시간)로 사고 정보 저장
+     * @param accidentId 사고 ID
+     * @param accidentData 사고 정보 JSON
+     */
+    default void storeAccidentInfo(String accidentId, String accidentData) {
+        storeAccidentInfo(accidentId, accidentData, Duration.ofHours(1));
+    }
+
+    /**
+     * 사고 정보 조회
+     * @param accidentId 사고 ID
+     * @return 사고 정보 JSON (없으면 null)
+     */
+    String getAccidentInfo(String accidentId);
 }

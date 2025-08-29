@@ -33,7 +33,7 @@ spring:
 
 mock:
   user-service:
-    enabled: true # 유저 서비스 feign 개발 전까지 사용
+    enabled: false # 유저 서비스 feign 개발 전까지 사용
 
 app:
   client:

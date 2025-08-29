@@ -31,6 +31,22 @@ jwt:
 server:
   port: 8080
 
+app:
+  client:
+    user-service:
+      url: ${CLIENT_USER}
+    driving-analysis-service:
+      url: ${CLIENT_DRIVING_ANALYSIS}
+
+twilio:
+  account-sid: ${TWILIO_SID}
+  auth-token: ${TWILIO_TOKEN}
+  phone-number: ${TWILIO_NUMBER}
+
+test:
+  phone-number: ${TWILIO_TEST_NUMBER}
+
+
 logging:
   level:
     root: INFO

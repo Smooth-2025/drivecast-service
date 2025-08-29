@@ -4,6 +4,8 @@ import com.smooth.drivecast_service.emergency.feign.UserServiceClient;
 import com.smooth.drivecast_service.emergency.feign.dto.EmergencyInfoResponse;
 import com.smooth.drivecast_service.emergency.service.mapper.EmergencyMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.math.BigDecimal;
 import com.smooth.drivecast_service.emergency.dto.AccidentInfoDto;
 import com.smooth.drivecast_service.emergency.dto.EmergencyReportResult;
 import com.smooth.drivecast_service.emergency.dto.EmergencyRequestDto;
@@ -79,8 +81,8 @@ public class EmergencyReportService {
             try {
                 AccidentInfoDto accidentInfo = getAccidentInfo(req.getAccidentId());
                 if (accidentInfo != null) {
-                    report.setLatitude(accidentInfo.getLatitude());
-                    report.setLongitude(accidentInfo.getLongitude());
+                    report.setLatitude(accidentInfo.getLatitude() != null ? BigDecimal.valueOf(accidentInfo.getLatitude()) : null);
+                    report.setLongitude(accidentInfo.getLongitude() != null ? BigDecimal.valueOf(accidentInfo.getLongitude()) : null);
                 }
             } catch (Exception e) {
                 log.warn("사고 정보 조회 실패 - 위치 정보 없이 저장: accidentId={}", req.getAccidentId());

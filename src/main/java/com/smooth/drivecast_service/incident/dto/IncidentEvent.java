@@ -31,8 +31,8 @@ public record IncidentEvent(
             throw new BusinessException(IncidentErrorCode.MISSING_TIMESTAMP);
         }
 
-        // 위치 좌표 범위 검증
-        if (!ValidationUtil.hasValidTimestampFormat(timestamp)) {
+        // Incident는 초단위 정확성이 중요하므로 엄격한 검증 적용
+        if (!ValidationUtil.hasValidIncidentTimestampFormat(timestamp)) {
             throw new BusinessException(IncidentErrorCode.INVALID_TIMESTAMP_FORMAT);
         }
 

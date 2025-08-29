@@ -1,6 +1,6 @@
 package com.smooth.drivecast_service.driving.service.mapper;
 
-import com.smooth.drivecast_service.driving.dto.DrivingMessageDto;
+import com.smooth.drivecast_service.driving.dto.DrivingResponseDto;
 import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
 import com.smooth.drivecast_service.global.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +19,11 @@ public class StartMessageMapper implements  DrivingMessageMapper{
     }
 
     @Override
-    public Optional<DrivingMessageDto> map(DrivingMappingContext context) {
+    public Optional<DrivingResponseDto> map(DrivingMappingContext context) {
         try {
             var event = context.getEvent();
 
-            return Optional.of(new DrivingMessageDto(
+            return Optional.of(new DrivingResponseDto(
                     "start",
                     Map.of(
                             "timestamp", event.timestamp()

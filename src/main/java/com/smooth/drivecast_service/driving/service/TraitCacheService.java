@@ -2,7 +2,7 @@ package com.smooth.drivecast_service.driving.service;
 
 import com.smooth.drivecast_service.driving.constants.DrivingVicinityPolicy;
 import com.smooth.drivecast_service.global.exception.BusinessException;
-import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,13 +20,16 @@ import java.util.concurrent.TimeUnit;
  **/
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class TraitCacheService {
 
-    @Qualifier("stringRedisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
-
     private final DrivingTraitService drivingTraitService;
+
+    public TraitCacheService(@Qualifier("stringRedisTemplate") RedisTemplate<String, String> redisTemplate,
+                           DrivingTraitService drivingTraitService) {
+        this.redisTemplate = redisTemplate;
+        this.drivingTraitService = drivingTraitService;
+    }
 
     /**
      * 새벽 1시 성향 워밍 캐시 실행

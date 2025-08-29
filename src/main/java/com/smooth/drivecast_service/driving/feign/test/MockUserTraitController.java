@@ -24,7 +24,7 @@ import java.util.Random;
 @ConditionalOnProperty(name = "mock.user-service.enabled", havingValue = "true")
 public class MockUserTraitController {
 
-    private static final String[] CHARACTERS = {"dolphin", "lion", "eagle", "bear", "fox", "rabbit"};
+    private static final String[] CHARACTERS = {"DOLPHIN", "LION", "CAT", "MEARCAT"};
     private static final Random random = new Random();
 
     /**

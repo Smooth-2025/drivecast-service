@@ -26,6 +26,10 @@ public class DrivingBroadcastScheduler {
     private final DrivingVicinityService vicinityService;
     private final TraitCacheService traitCacheService;
     private final DrivingCoordinateService coordinateService;
+    
+    // 연속으로 활성 사용자가 없었던 횟수 추적
+    private int consecutiveEmptyChecks = 0;
+    private static final int MAX_EMPTY_CHECKS = 10; // 10초 후 체크 간격 늘리기
 
     /**
      * 1초마다 주변 운전자 성향 브로드캐스트
@@ -37,7 +41,21 @@ public class DrivingBroadcastScheduler {
         try {
             var activeUsers = sessionManager.getActiveUsers();
             if (activeUsers.isEmpty()) {
+                consecutiveEmptyChecks++;
+                
+                // 연속으로 활성 사용자가 없으면 로그 빈도 줄이기
+                if (consecutiveEmptyChecks <= MAX_EMPTY_CHECKS) {
+                    log.debug("활성 사용자 없음: 연속 {}회", consecutiveEmptyChecks);
+                } else if (consecutiveEmptyChecks % 60 == 0) { // 1분마다 한번씩만 로그
+                    log.debug("활성 사용자 없음: 연속 {}회 (1분마다 로그)", consecutiveEmptyChecks);
+                }
                 return; // 활성 사용자 없음
+            }
+            
+            // 활성 사용자가 있으면 카운터 리셋
+            if (consecutiveEmptyChecks > 0) {
+                log.info("활성 사용자 발견: {}명 ({}초 만에 재개)", activeUsers.size(), consecutiveEmptyChecks);
+                consecutiveEmptyChecks = 0;
             }
 
             var processedCount = 0;

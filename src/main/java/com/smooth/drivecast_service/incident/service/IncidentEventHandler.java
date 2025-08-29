@@ -102,8 +102,8 @@ public class IncidentEventHandler {
 
     private void sendToNearbyUsers(IncidentEvent event, String alertId, boolean excludeSelf) {
         try {
-            // 반경 내 사용자 검색
-            Instant refTime = KoreanTimeUtil.parseKoreanTime(event.timestamp());
+            // 반경 내 사용자 검색 (Incident는 초단위 정확성 필수)
+            Instant refTime = KoreanTimeUtil.parseKoreanTimeWithSeconds(event.timestamp());
             List<String> nearbyUsers = vicinityService.findUsers(
                     event.latitude(),
                     event.longitude(),

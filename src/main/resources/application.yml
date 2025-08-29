@@ -34,4 +34,13 @@ server:
 logging:
   level:
     root: INFO
-    com.smooth.drivecast_service: INFO
+    com.smooth.drivecast_service: DEBUG
+    # Redis 연결 로그 최소화
+    org.springframework.data.redis.core.RedisConnectionUtils: WARN
+    org.springframework.data.redis.connection: WARN
+    # 스케줄러 관련 로그 제어
+    org.springframework.scheduling: INFO
+    # HTTP 요청 로그 (개발용)
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    # Feign 클라이언트 로그 (개발용)
+    feign: DEBUG

@@ -10,6 +10,8 @@ import java.util.List;
 public interface EmergencyReportRepository extends JpaRepository<EmergencyReport, Long> {
 
     boolean existsByAccidentIdAndUserIdAndEmergencyNotifiedTrue(String accidentId, Long userId);
+    
+    boolean existsByAccidentIdAndUserId(String accidentId, Long userId);
 
     List<EmergencyReport> findByUserIdOrderByReportTimeDesc(Long userId);
 }

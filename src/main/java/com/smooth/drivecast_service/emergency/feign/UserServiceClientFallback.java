@@ -13,8 +13,8 @@ public class UserServiceClientFallback implements UserServiceClient {
 
         EmergencyInfoResponse.EmergencyData fallbackData = EmergencyInfoResponse.EmergencyData.builder()
                 .userId(userId)
-                .gender("Unknown")
-                .bloodType("Unknown")
+                .gender("미상")
+                .bloodType("미상")
                 .emergencyContact1(null)
                 .emergencyContact2(null)
                 .emergencyContact3(null)

@@ -41,7 +41,6 @@ public class EmergencyReportService {
     private static final String SMS_119_FORMAT = "[응급상황 119 신고]\n환자정보: %s/%s형\n사고시간: %s\n위치: 위도 %.6f, 경도 %.6f\n연락처: 자동신고시스템";
     private static final String SMS_FAMILY_FORMAT = "[응급상황 알림]\n가족에게 알림: 교통사고 발생\n사고시간: %s\n위치: 위도 %.6f, 경도 %.6f\n상황: 자동 119 신고 완료";
 
-    @Transactional
     public EmergencyReportResult processEmergencyDecision(EmergencyRequestDto req, String jwtUserId) {
         final String accidentId = req.getAccidentId();
         final Long userId = jwtUserId != null ? Long.parseLong(jwtUserId) : req.getUserId();
@@ -59,7 +58,15 @@ public class EmergencyReportService {
                 return EmergencyReportResult.cancelled(accidentId, "신고가 취소되었습니다.");
             }
 
-            return processEmergencyReport(report, accidentId);
+            AccidentInfoDto accidentInfo = getAccidentInfo(accidentId);
+            if (accidentInfo == null) {
+                throw new BusinessException(EmergencyErrorCode.EMERGENCY_ACCIDENT_INFO_NOT_FOUND);
+            }
+            EmergencyUserInfoDto userInfo = getUserInfo(report.getUserId());
+            log.info("2단계 완료: 사용자 정보 조회 성공 - userId={}, gender={}, bloodType={}, emergencyContact1={}", 
+                report.getUserId(), userInfo.getGender(), userInfo.getBloodType(), userInfo.getEmergencyContact1());
+
+            return executeEmergencyNotifications(report, accidentInfo, userInfo);
 
         } catch (BusinessException businessException) {
             throw businessException;
@@ -69,7 +76,8 @@ public class EmergencyReportService {
         }
     }
 
-    private EmergencyReport createEmergencyReport(EmergencyRequestDto req, Long userId) {
+    @Transactional
+    protected EmergencyReport createEmergencyReport(EmergencyRequestDto req, Long userId) {
         EmergencyReport report = new EmergencyReport();
         report.setAccidentId(req.getAccidentId());
         report.setUserId(userId);
@@ -92,15 +100,9 @@ public class EmergencyReportService {
         return emergencyReportRepository.save(report);
     }
 
-    private EmergencyReportResult processEmergencyReport(EmergencyReport report, String accidentId) {
-        log.info("실제 응급신고 처리 시작");
-
-        AccidentInfoDto accidentInfo = getAccidentInfo(accidentId);
-        if (accidentInfo == null) {
-            throw new BusinessException(EmergencyErrorCode.EMERGENCY_ACCIDENT_INFO_NOT_FOUND);
-        }
-
-        EmergencyUserInfoDto userInfo = getUserInfo(report.getUserId());
+    @Transactional
+    protected EmergencyReportResult executeEmergencyNotifications(EmergencyReport report, AccidentInfoDto accidentInfo, EmergencyUserInfoDto userInfo) {
+        log.info("3단계: 알림 발송 및 완료 처리 시작");
 
         sendEmergencySms(accidentInfo, userInfo);
         boolean familyNotified = sendFamilyNotification(userInfo, accidentInfo);
@@ -108,7 +110,7 @@ public class EmergencyReportService {
         report.setFamilyNotified(familyNotified);
         emergencyReportRepository.save(report);
 
-        return EmergencyReportResult.reported(accidentId, "119 신고가 접수되었습니다.");
+        return EmergencyReportResult.reported(report.getAccidentId(), "119 신고가 접수되었습니다.");
     }
 
     private AccidentInfoDto getAccidentInfo(String accidentId) {
@@ -130,7 +132,7 @@ public class EmergencyReportService {
     @Transactional
     public boolean isAlreadyReported(String accidentId, Long userId) {
         boolean exists = emergencyReportRepository
-                .existsByAccidentIdAndUserIdAndEmergencyNotifiedTrue(accidentId, userId);
+                .existsByAccidentIdAndUserId(accidentId, userId);
         log.debug("중복 신고 체크: accidentId={}, userId={}, exists={}", accidentId, userId, exists);
         return exists;
     }
@@ -142,10 +144,26 @@ public class EmergencyReportService {
     
     private EmergencyUserInfoDto getUserInfo(Long userId) {
         try {
+            log.info("사용자 정보 조회 시도: userId={}", userId);
             EmergencyInfoResponse response = userServiceClient.getUserInfo(String.valueOf(userId));
-            return emergencyMapper.toUserInfoDto(response.getData());
+            log.info("OpenFeign 응답: code={}, message={}", response.getCode(), response.getMessage());
+            
+            if (response.getData() != null) {
+                log.info("응답 데이터: gender={}, bloodType={}, contact1={}", 
+                    response.getData().getGender(), 
+                    response.getData().getBloodType(),
+                    response.getData().getEmergencyContact1());
+            } else {
+                log.warn("응답 데이터가 null입니다.");
+            }
+            
+            EmergencyUserInfoDto result = emergencyMapper.toUserInfoDto(response.getData());
+            log.info("매핑 결과: gender={}, bloodType={}, contact1={}", 
+                result.getGender(), result.getBloodType(), result.getEmergencyContact1());
+                
+            return result;
         } catch (Exception e) {
-            log.error("유저 정보 조회 실패: userId={}", userId, e);
+            log.error("유저 정보 조회 실패: userId={}, error={}", userId, e.getMessage(), e);
             throw new BusinessException(EmergencyErrorCode.EMERGENCY_USER_SERVICE_ERROR, "사용자 정보 조회 중 외부 서비스 에러가 발생했습니다.");
         }
     }
@@ -215,10 +233,10 @@ public class EmergencyReportService {
         if (gender == null || gender.trim().isEmpty()) {
             return "미상";
         }
-        return switch (gender.toLowerCase()) {
-            case "male", "m", "남성", "남" -> "남성";
-            case "female", "f", "여성", "여" -> "여성";
-            default -> gender;
+        return switch (gender.toUpperCase()) {
+            case "MALE", "M", "남성", "남" -> "남성";
+            case "FEMALE", "F", "여성", "여" -> "여성";
+            default -> "미상";
         };
     }
     
@@ -227,7 +245,7 @@ public class EmergencyReportService {
             return "미상";
         }
         
-        String normalized = bloodType.toUpperCase().replaceAll("[^ABO]", "");
+        String normalized = bloodType.toUpperCase().replaceAll("[^ABO+\\-]", "");
         return normalized.isEmpty() ? "미상" : normalized;
     }
 }

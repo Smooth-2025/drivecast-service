@@ -20,12 +20,12 @@ public interface UserTraitClient {
     /**
      * 단건 성향 조회
      */
-    @GetMapping("/characters/{userId}")
+    @GetMapping("/traits/{userId}") // 원래는 /characters/{userId}
     TraitResponseDto getTrait(@PathVariable String userId);
 
     /**
      * 벌크 성향 조회
      */
-    @GetMapping("/characters")
+    @GetMapping("/traits/bulk") // 원래는 /characters
     TraitBulkResponseDto getTraitsBulk(@RequestParam(defaultValue = "true") boolean hasCharacter);
 }

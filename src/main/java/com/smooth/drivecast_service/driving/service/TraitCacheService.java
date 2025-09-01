@@ -34,7 +34,7 @@ public class TraitCacheService {
     /**
      * 새벽 1시 성향 워밍 캐시 실행
      **/
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */10 * * * *", zone = "Asia/Seoul")
     public void warmupCache() {
         var startTime = System.currentTimeMillis();
         log.info("성향 워밍 캐시 시작");

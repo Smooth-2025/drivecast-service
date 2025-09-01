@@ -26,7 +26,7 @@ public class DrivingTraitService {
 
     // 유효한 성향 enum 값들 (검증용)
     private static final Set<String> VALID_CHARACTERS = Set.of(
-            "DOLPHIN", "LION", "MEERCAT", "CAT"
+            "DOLPHIN", "LION", "MEERKAT", "CAT"
     );
 
     /**
@@ -142,6 +142,6 @@ public class DrivingTraitService {
      * 성향 값 유효성 검증
      */
     private boolean isValidCharacter(String character) {
-        return character != null && VALID_CHARACTERS.contains(character.toLowerCase());
+        return character != null && VALID_CHARACTERS.contains(character.toUpperCase());
     }
 }

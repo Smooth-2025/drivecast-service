@@ -2,7 +2,7 @@ package com.smooth.drivecast_service.driving.dto;
 
 /**
  * 성향 조회 응답 DTO
- * 외부 API 응답: { "userId": "31", "character": "dolphin" }
+ * 외부 API 응답: { "userId": "31", "character": "DOLPHIN" }
  */
 public record TraitResponseDto(
         String userId,

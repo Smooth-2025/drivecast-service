@@ -1,12 +1,14 @@
 package com.smooth.drivecast_service.driving.service;
 
 import com.smooth.drivecast_service.driving.constants.DrivingVicinityPolicy;
+import com.smooth.drivecast_service.global.common.cache.PresenceService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -19,9 +21,12 @@ import java.util.concurrent.TimeUnit;
 public class DrivingSessionManager {
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final PresenceService presenceService;
 
-    public DrivingSessionManager(@Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
+    public DrivingSessionManager(@Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate,
+                                PresenceService presenceService) {
         this.stringRedisTemplate = stringRedisTemplate;
+        this.presenceService = presenceService;
     }
 
     /**
@@ -36,6 +41,9 @@ public class DrivingSessionManager {
             stringRedisTemplate.opsForSet().add(DrivingVicinityPolicy.DRIVING_ACTIVE_SET, userId);
             stringRedisTemplate.expire(DrivingVicinityPolicy.DRIVING_ACTIVE_SET, 
                     DrivingVicinityPolicy.ACTIVE_SET_TTL_SEC, TimeUnit.SECONDS);
+            
+            // 사용자 접속 시간 기록 (신선도 필터링용)
+            presenceService.markSeen(userId, Instant.now());
             
             log.debug("활성 세트 추가: userId={}", userId);
         } catch (Exception e) {

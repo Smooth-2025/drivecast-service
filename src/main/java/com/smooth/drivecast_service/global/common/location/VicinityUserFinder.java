@@ -1,5 +1,6 @@
 package com.smooth.drivecast_service.global.common.location;
 
+import com.smooth.drivecast_service.driving.util.LocationWindowKeyGenerator;
 import com.smooth.drivecast_service.global.common.cache.PresenceService;
 import com.smooth.drivecast_service.global.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -36,21 +40,37 @@ public class VicinityUserFinder {
             return List.of();
         }
 
-        String locationKey = LocationKeyGenerator.generate(refTime);
+        // 윈도우 키 방식 사용 (driving과 동일한 방식)
+        List<String> windowKeys = LocationWindowKeyGenerator.generateDefaultWindowKeys(refTime);
+        log.debug("윈도우 키 생성: {}", windowKeys);
 
-        List<String> nearbyUsers = searchNearbyUsers(
-                locationKey, latitude, longitude, radiusMeters
-        );
+        Set<String> allNearbyUsers = new HashSet<>();
+        
+        // 각 윈도우 키에서 사용자 검색
+        for (String locationKey : windowKeys) {
+            List<String> usersInWindow = searchNearbyUsers(locationKey, latitude, longitude, radiusMeters);
+            allNearbyUsers.addAll(usersInWindow);
+        }
 
-        if (nearbyUsers.isEmpty()) {
+        if (allNearbyUsers.isEmpty()) {
+            log.debug("모든 윈도우에서 사용자 없음: windowKeys={}", windowKeys.size());
             return List.of();
         }
 
-        return nearbyUsers.stream()
-                .filter(userId -> userId != null)
-                .filter(userId -> excludeUserId == null || !userId.equals(excludeUserId))
-                .filter(userId -> isUserActive(userId, refTime, freshness))
-                .toList();
+        // 필터링 및 신선도 체크
+        List<String> result = new ArrayList<>();
+        for (String userId : allNearbyUsers) {
+            if (userId != null && 
+                (excludeUserId == null || !userId.equals(excludeUserId)) &&
+                isUserActive(userId, refTime, freshness)) {
+                result.add(userId);
+            }
+        }
+
+        log.debug("윈도우 기반 사용자 검색 완료: 윈도우={}개, 전체={}명, 필터링후={}명", 
+                windowKeys.size(), allNearbyUsers.size(), result.size());
+        
+        return result;
     }
 
     private List<String> searchNearbyUsers(String locationKey, double latitude, double longitude, int radiusMeters) {

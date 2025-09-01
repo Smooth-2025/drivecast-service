@@ -32,7 +32,16 @@ public class WindowLocationAdapter {
 
         for(String key : locationKeys) {
             try {
+                // 키 존재 여부 확인
+                boolean keyExists = valkeyRedisTemplate.hasKey(key);
+                log.debug("키 존재 확인: key={}, exists={}", key, keyExists);
+                
+                if (!keyExists) {
+                    continue;
+                }
+                
                 var positions = valkeyRedisTemplate.opsForGeo().position(key, userId);
+                log.debug("위치 조회 결과: userId={}, key={}, positions={}", userId, key, positions);
 
                 if (positions != null && !positions.isEmpty() && positions.getFirst() != null) {
                     var point = positions.getFirst();
@@ -46,7 +55,7 @@ public class WindowLocationAdapter {
             }
         }
 
-        log.debug("사용자 위치 없음: userId={}, 검색키={}개", userId, locationKeys.size());
+        log.debug("사용자 위치 없음: userId={}, 검색키={}개, 키목록={}", userId, locationKeys.size(), locationKeys);
         return Optional.empty();
     }
 }

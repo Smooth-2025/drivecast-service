@@ -43,5 +43,7 @@ out/
 
 ### environment ###
 .env
+application.yml
 application-dev.yml
+application-prod.yml
 docker-compose.local.yml

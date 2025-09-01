@@ -24,6 +24,7 @@ services:
 
       # OpenFeign
       - CLIENT_USER=${CLIENT_USER}
+      - CLIENT_DRIVING_ANALYSIS=${CLIENT_DRIVING_ANALYSIS}
 
       # JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
@@ -33,6 +34,13 @@ services:
       - VALKEY_HOST=${VALKEY_HOST:-valkey}
       - VALKEY_PORT=${VALKEY_PORT:-6379}
       - VALKEY_PASSWORD=${VALKEY_PASSWORD:-}
+
+      # Twilio SMS Configuration
+      - TWILIO_SID=${TWILIO_SID}
+      - TWILIO_TOKEN=${TWILIO_TOKEN}
+      - TWILIO_NUMBER=${TWILIO_NUMBER}
+      - TWILIO_TEST_NUMBER=${TWILIO_TEST_NUMBER}
+
     depends_on:
       mysql-db:
         condition: service_healthy

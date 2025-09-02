@@ -4,6 +4,7 @@ import com.smooth.drivecast_service.global.security.JwtTokenProvider;
 import com.smooth.drivecast_service.global.security.StompPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -29,16 +30,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean
     public ThreadPoolTaskScheduler brokerTaskScheduler() {
         ThreadPoolTaskScheduler ts = new ThreadPoolTaskScheduler();
-        ts.setPoolSize(1);
+        ts.setPoolSize(2);
         ts.setThreadNamePrefix("ws-heartbeat-");
         ts.initialize();
         return ts;
     }
 
+    @Value("${ws.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(allowedOrigins)
                 .withSockJS();
     }
 
@@ -46,7 +50,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue", "/topic")
                 .setTaskScheduler(brokerTaskScheduler())
-                .setHeartbeatValue(new long[]{10000, 10000});
+                .setHeartbeatValue(new long[]{30000, 30000});
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }

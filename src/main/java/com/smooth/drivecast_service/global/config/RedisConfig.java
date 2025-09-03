@@ -24,9 +24,44 @@ public class RedisConfig {
     @Value("${valkey.password:}")
     private String valkeyPassword;
 
+    // 기본 Redis 설정값 (내부 캐시용)
+    @Value("${spring.data.redis.host:localhost}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port:6379}")
+    private int redisPort;
+
+    @Value("${spring.data.redis.database:0}")
+    private int redisDatabase;
+
+    @Value("${spring.data.redis.password:}")
+    private String redisPassword;
+
     /**
-     * 기본 Redis는 Spring Boot 자동 설정 사용 (캐시용)
-     * 기본 RedisTemplate은 Spring Boot가 자동 생성 (캐시용으로 사용) */
+     * 기본 Redis 연결 팩토리 (내부 캐시용)
+     */
+    @Bean
+    public JedisConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
+        config.setDatabase(redisDatabase);
+        if (!redisPassword.isEmpty()) {
+            config.setPassword(redisPassword);
+        }
+        return new JedisConnectionFactory(config);
+    }
+
+    /**
+     * 기본 Redis용 StringRedisTemplate (내부 캐시용)
+     */
+    @Bean
+    public org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate() {
+        org.springframework.data.redis.core.StringRedisTemplate template = 
+            new org.springframework.data.redis.core.StringRedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory());
+        return template;
+    }
 
     // Valkey용 별도 설정
     @Bean

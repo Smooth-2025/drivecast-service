@@ -57,9 +57,27 @@ public class RedisConfig {
      */
     @Bean
     public org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate() {
-        org.springframework.data.redis.core.StringRedisTemplate template = 
+        org.springframework.data.redis.core.StringRedisTemplate template =
             new org.springframework.data.redis.core.StringRedisTemplate();
         template.setConnectionFactory(redisConnectionFactory());
+        return template;
+    }
+
+    /**
+     * 기본 RedisTemplate (Spring Boot 자동 설정 대체)
+     */
+    @Bean
+    public RedisTemplate<Object, Object> redisTemplate() {
+        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory());
+        
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        template.setKeySerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setValueSerializer(stringSerializer);
+        template.setHashValueSerializer(stringSerializer);
+        
+        template.afterPropertiesSet();
         return template;
     }
 

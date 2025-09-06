@@ -14,7 +14,7 @@ public class AuthenticationUtils {
     private static final String USER_ID_HEADER = "X-User-Id";
     private static final String AUTHENTICATED_HEADER = "X-Authenticated";
 
-    public static Long getCurrentUserId() {
+    private static Long getCurrentUserId() {
         try {
             ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
             HttpServletRequest request = attr.getRequest();

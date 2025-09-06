@@ -1,11 +1,17 @@
 package com.smooth.drivecast_service.global.config;
 
+import com.smooth.drivecast_service.global.common.messaging.PubSubMessageListener;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
@@ -37,10 +43,24 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String redisPassword;
 
+    // 메시징용 Redis 설정값 (배포/개발 환경 모두 지원)
+    @Value("${messaging.redis.host:${messaging-redis.host:localhost}}")
+    private String messagingRedisHost;
+
+    @Value("${messaging.redis.port:${messaging-redis.port:6379}}")
+    private int messagingRedisPort;
+
+    @Value("${messaging.redis.database:${messaging-redis.database:2}}")
+    private int messagingRedisDatabase;
+
+    @Value("${messaging.redis.password:${messaging-redis.password:}}")
+    private String messagingRedisPassword;
+
     /**
      * 기본 Redis 연결 팩토리 (내부 캐시용)
      */
-    @Bean
+    @Bean("redisConnectionFactory")
+    @Primary
     public JedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(redisHost);
@@ -53,9 +73,10 @@ public class RedisConfig {
     }
 
     /**
-     * 기본 Redis용 StringRedisTemplate (내부 캐시용)
+     * 기본 Redis용 StringRedisTemplate (내부 캐시용 - lastseen 등)
      */
-    @Bean
+    @Bean("stringRedisTemplate")
+    @Primary
     public org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate() {
         org.springframework.data.redis.core.StringRedisTemplate template =
             new org.springframework.data.redis.core.StringRedisTemplate();
@@ -107,5 +128,42 @@ public class RedisConfig {
 
         template.afterPropertiesSet();
         return template;
+    }
+
+    // 메시징용 Redis 설정
+    @Bean
+    public JedisConnectionFactory messagingRedisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(messagingRedisHost);
+        config.setPort(messagingRedisPort);
+        config.setDatabase(messagingRedisDatabase);
+        if (!messagingRedisPassword.isEmpty()) {
+            config.setPassword(messagingRedisPassword);
+        }
+        return new JedisConnectionFactory(config);
+    }
+
+    @Bean("messagingStringRedisTemplate")
+    public StringRedisTemplate messagingStringRedisTemplate() {
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(messagingRedisConnectionFactory());
+        return template;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "messaging.redis.enabled", havingValue = "true", matchIfMissing = true)
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            PubSubMessageListener messageListener,
+            com.smooth.drivecast_service.global.common.messaging.KickMessageListener kickMessageListener) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(messagingRedisConnectionFactory());
+        
+        // WebSocket 메시지 채널
+        container.addMessageListener(messageListener, new ChannelTopic("websocket:messages"));
+        
+        // 킥 시스템 채널
+        container.addMessageListener(kickMessageListener, new ChannelTopic("ws:system:kick"));
+        
+        return container;
     }
 }

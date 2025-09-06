@@ -10,7 +10,7 @@ public interface RealtimePublisher {
      * 특정 사용자에게 메시지 전송
      * @param userId 수신자 ID
      * @param destination 목적지 경로 (예: /user/queue/alert)
-     * @param payload 전송할 데이터 (보통 RealtimeEnvelope)
+     * @param payload 전송할 데이터
      **/
     void toUser(String userId, String destination, Object payload);
 }

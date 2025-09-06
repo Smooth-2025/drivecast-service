@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import com.smooth.drivecast_service.emergency.dto.AccidentInfoDto;
 import com.smooth.drivecast_service.emergency.dto.EmergencyReportResult;
 import com.smooth.drivecast_service.emergency.dto.EmergencyRequestDto;
+import com.smooth.drivecast_service.emergency.dto.EmergencyResponseDto;
 import com.smooth.drivecast_service.emergency.dto.EmergencyUserInfoDto;
 import com.smooth.drivecast_service.emergency.entity.EmergencyReport;
 import com.smooth.drivecast_service.emergency.exception.EmergencyErrorCode;
@@ -226,6 +227,18 @@ public class EmergencyReportService {
                 report.getLongitude()
             ))
             .toList();
+    }
+
+    public EmergencyResponseDto getAccidentById(String accidentId) {
+        EmergencyReport report = emergencyReportRepository
+            .findByAccidentId(accidentId)
+            .orElseThrow(() -> new BusinessException(EmergencyErrorCode.EMERGENCY_REPORT_NOT_FOUND));
+        
+        return new EmergencyResponseDto(
+            report.getEmergencyNotified(),
+            report.getFamilyNotified(),
+            report.getReportTime()
+        );
     }
     
     

@@ -30,11 +30,8 @@ pipeline {
             steps {
                 script {
                     echo "----------------------------------------------------------------------------------"
-                    echo "[Building application with application.yaml]"
-                    withCredentials([file(credentialsId: 'drivecast-application-yml-file', variable: 'APPLICATION_YAML_FILE')]) {
-                        sh "cp ${APPLICATION_YAML_FILE} src/main/resources/application.yaml"
-                        sh './gradlew clean build'
-                    }
+                    echo "[Building application]"
+                    sh './gradlew clean build -Dspring.profiles.active=test'
                 }
             }
         }

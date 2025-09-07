@@ -47,7 +47,7 @@ pipeline {
             steps {
                 script {
                     echo "----------------------------------------------------------------------------------"
-                    echo "[Building image: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
+                    echo "[Building Docker image: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
                     docker.build("${env.ECR_REPOSITORY}:${env.IMAGE_TAG}")
                 }
             }
@@ -69,24 +69,23 @@ pipeline {
 
         stage('Deployment Manifest Update') {
             steps {
-                script {
-                    echo "----------------------------------------------------------------------------------"
-                    echo "[Updating GitOps repository with new image tag: ${env.IMAGE_TAG}]"
-                    withCredentials([usernamePassword(credentialsId: 'github-access-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-                        sh """
-                            git config user.email "mjalswn26@gmail.com"
-                            git config user.name "minju26"
+                echo "----------------------------------------------------------------------------------"
+                echo "[Updating GitOps repository with new image tag: ${env.IMAGE_TAG}]"
+                withCredentials([usernamePassword(credentialsId: 'github-access-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config user.email "mjalswn26@gmail.com"
+                        git config user.name "minju26"
 
-                            git clone --branch ${env.GITOPS_BRANCH} https://${GITHUB_TOKEN}@github.com/Smooth-2025/smooth-gitops.git gitops-repo
-                            cd gitops-repo
+                        # HTTPS clone with credentials
+                        git clone --branch ${GITOPS_BRANCH} https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/Smooth-2025/smooth-gitops.git gitops-repo
+                        cd gitops-repo
 
-                            sed -i "s|image: .*|image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}|g" ${env.K8S_DEPLOYMENT_FILE}
+                        sed -i "s|image: .*|image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}|g" ${K8S_DEPLOYMENT_FILE}
 
-                            git add ${env.K8S_DEPLOYMENT_FILE}
-                            git commit -m "feat: 도커 이미지 태그 업데이트(${env.ECR_REPOSITORY}:${env.IMAGE_TAG})"
-                            git push origin ${env.GITOPS_BRANCH}
-                        """
-                    }
+                        git add ${K8S_DEPLOYMENT_FILE}
+                        git commit -m "feat: 도커 이미지 태그 업데이트(${ECR_REPOSITORY}:${IMAGE_TAG})"
+                        git push origin ${GITOPS_BRANCH}
+                    '''
                 }
             }
         }

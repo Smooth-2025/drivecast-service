@@ -21,6 +21,7 @@ import com.smooth.drivecast_service.global.exception.BusinessException;
 import com.smooth.drivecast_service.incident.dto.IncidentEvent;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,7 @@ public class EmergencyReportService {
 
             EmergencyReport report = createEmergencyReport(req, userId);
 
-            if (!report.getEmergencyNotified()) {
+            if (!isEmergencyReportRequested(req)) {
                 return EmergencyReportResult.cancelled(accidentId, "신고가 취소되었습니다.");
             }
 
@@ -83,10 +84,9 @@ public class EmergencyReportService {
         report.setAccidentId(req.getAccidentId());
         report.setUserId(userId);
         
-        boolean shouldNotify = isEmergencyReportRequested(req);
-        report.setEmergencyNotified(shouldNotify);
+        report.setEmergencyNotified(false);
         
-        if (shouldNotify) {
+        if (isEmergencyReportRequested(req)) {
             try {
                 AccidentInfoDto accidentInfo = getAccidentInfo(req.getAccidentId());
                 if (accidentInfo != null) {
@@ -106,9 +106,13 @@ public class EmergencyReportService {
         log.info("3단계: 알림 발송 및 완료 처리 시작");
 
         sendEmergencySms(accidentInfo, userInfo);
+        
+        report.setEmergencyNotified(true);
+        log.info("119 문자 발송 성공 - emergency_notified를 true로 업데이트");
+        
         boolean familyNotified = sendFamilyNotification(userInfo, accidentInfo);
-
         report.setFamilyNotified(familyNotified);
+        
         emergencyReportRepository.save(report);
 
         return EmergencyReportResult.reported(report.getAccidentId(), "119 신고가 접수되었습니다.");
@@ -230,10 +234,12 @@ public class EmergencyReportService {
     }
 
     public EmergencyResponseDto getAccidentById(String accidentId) {
-        EmergencyReport report = emergencyReportRepository
-            .findByAccidentId(accidentId)
-            .orElseThrow(() -> new BusinessException(EmergencyErrorCode.EMERGENCY_REPORT_NOT_FOUND));
+        Optional<EmergencyReport> reportOpt = emergencyReportRepository.findByAccidentId(accidentId);
+        if (reportOpt.isEmpty()) {
+            return null;
+        }
         
+        EmergencyReport report = reportOpt.get();
         return new EmergencyResponseDto(
             report.getEmergencyNotified(),
             report.getFamilyNotified(),

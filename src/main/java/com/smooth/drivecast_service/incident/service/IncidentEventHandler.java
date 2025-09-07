@@ -126,7 +126,7 @@ public class IncidentEventHandler {
                         event.longitude(),
                         event.type().getRadiusMeters(),
                         !excludeSelf, // includeSelf = !excludeSelf
-                        30, // 30초 내 활동한 사용자
+                        300, // 5분 내 활동한 사용자 (주행 브로드캐스트와 동일)
                         3,  // 최대 3회 재시도
                         List.of(100L, 200L, 500L), // 재시도 지연
                         refTime,

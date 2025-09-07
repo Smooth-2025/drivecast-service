@@ -65,7 +65,7 @@ public class VicinityUserFinder {
             boolean isExcluded = excludeUserId != null && userId.equals(excludeUserId);
             boolean isActive = isUserActive(userId, refTime, freshness);
             
-            log.debug("사용자 필터링: userId={}, excluded={}, active={}", userId, isExcluded, isActive);
+            log.info("사용자 필터링: userId={}, excluded={}, active={}", userId, isExcluded, isActive);
             
             if (userId != null && !isExcluded && isActive) {
                 result.add(userId);

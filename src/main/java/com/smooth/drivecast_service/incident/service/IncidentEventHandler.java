@@ -116,17 +116,26 @@ public class IncidentEventHandler {
             
             // 반경 내 사용자 검색 (Incident는 초단위 정확성 필수)
             Instant refTime = KoreanTimeUtil.parseKoreanTimeWithSeconds(event.timestamp());
-            List<String> nearbyUsers = vicinityService.findUsers(
-                    event.latitude(),
-                    event.longitude(),
-                    event.type().getRadiusMeters(),
-                    !excludeSelf, // includeSelf = !excludeSelf
-                    30, // 30초 내 활동한 사용자
-                    3,  // 최대 3회 재시도
-                    List.of(100L, 200L, 500L), // 재시도 지연
-                    refTime,
-                    excludeSelf ? event.userId() : null // excludeUserId
-            );
+            log.info("VicinityService 호출 시작: refTime={}, excludeUserId={}", refTime, excludeSelf ? event.userId() : null);
+            
+            List<String> nearbyUsers;
+            try {
+                nearbyUsers = vicinityService.findUsers(
+                        event.latitude(),
+                        event.longitude(),
+                        event.type().getRadiusMeters(),
+                        !excludeSelf, // includeSelf = !excludeSelf
+                        30, // 30초 내 활동한 사용자
+                        3,  // 최대 3회 재시도
+                        List.of(100L, 200L, 500L), // 재시도 지연
+                        refTime,
+                        excludeSelf ? event.userId() : null // excludeUserId
+                );
+                log.info("VicinityService 호출 완료: 결과={}명", nearbyUsers.size());
+            } catch (Exception e) {
+                log.error("VicinityService 호출 실패: type={}, alertId={}", event.type(), alertId, e);
+                return;
+            }
 
             if (nearbyUsers.isEmpty()) {
                 log.warn("반경 내 사용자 없음: type={}, alertId={}, lat={}, lng={}, radius={}m", 

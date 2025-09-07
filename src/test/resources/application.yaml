@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: drivecast-service-test
+
+  session:
+    redis:
+      namespace: "spring:session:test"
+      flush-mode: on_save
+      save-mode: on_set_attribute
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 1000ms
+
+  datasource:
+    # RDS → H2 메모리 DB
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL;DATABASE_TO_UPPER=false
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+
+app:
+  client:
+    user-service:
+      url: http://localhost:8081
+    driving-analysis-service:
+      url: http://localhost:8082
+
+jwt:
+  secret: test-secret-key
+
+valkey:
+  host: localhost
+  port: 6379
+  database: 0
+  timeout: 1000ms
+
+ws:
+  allowed-origins: "http://localhost:5173"
+
+logging:
+  level:
+    root: INFO
+    com.smooth.drivecast_service: DEBUG
+    org.springframework: WARN
+    org.hibernate: WARN
+
+twilio:
+  account-sid: dummy
+  auth-token: dummy
+  phone-number: "+10000000000"
+
+test:
+  phone-number: "+19999999999"
+
+messaging:
+  redis:
+    enabled: false   # 테스트에서는 끄는 게 안정적
+    host: localhost
+    port: 6379
+    database: 1
+    timeout: 1000ms
+
+messaging-redis:
+  host: localhost
+  port: 6379
+  database: 1
+  timeout: 1000ms

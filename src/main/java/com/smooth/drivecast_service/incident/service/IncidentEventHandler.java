@@ -67,13 +67,18 @@ public class IncidentEventHandler {
     }
 
     private void sendAccidentNotifications(IncidentEvent event, String alertId) {
+        log.info("사고 알림 처리 시작: type={}, userId={}, alertId={}", event.type(), event.userId(), alertId);
+        
         // 1. 본인에게 즉시 알림 (accident)
         if (event.userId() != null && !event.userId().isBlank()) {
+            log.info("본인 알림 전송 시작: userId={}, alertId={}", event.userId(), alertId);
             sendToSelf(event, alertId);
         }
 
         // 2. 반경 내 다른 운전자에게 즉시 알림 (accident-nearby)
+        log.info("반경 내 알림 전송 시작: alertId={}, excludeSelf=true", alertId);
         sendToNearbyUsers(event, alertId, true); // excludeSelf = true
+        log.info("반경 내 알림 전송 완료: alertId={}", alertId);
     }
 
     private void sendObstacleNotifications(IncidentEvent event, String alertId) {

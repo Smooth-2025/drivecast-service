@@ -49,26 +49,31 @@ public class VicinityUserFinder {
         // 각 윈도우 키에서 사용자 검색
         for (String locationKey : windowKeys) {
             List<String> usersInWindow = searchNearbyUsers(locationKey, latitude, longitude, radiusMeters);
+            log.debug("윈도우 검색 결과: key={}, 발견={}명, users={}", locationKey, usersInWindow.size(), usersInWindow);
             allNearbyUsers.addAll(usersInWindow);
         }
 
         if (allNearbyUsers.isEmpty()) {
-            log.debug("모든 윈도우에서 사용자 없음: windowKeys={}", windowKeys.size());
+            log.warn("모든 윈도우에서 사용자 없음: windowKeys={}, 좌표=({}, {}), 반경={}m", 
+                    windowKeys, latitude, longitude, radiusMeters);
             return List.of();
         }
 
         // 필터링 및 신선도 체크
         List<String> result = new ArrayList<>();
         for (String userId : allNearbyUsers) {
-            if (userId != null && 
-                (excludeUserId == null || !userId.equals(excludeUserId)) &&
-                isUserActive(userId, refTime, freshness)) {
+            boolean isExcluded = excludeUserId != null && userId.equals(excludeUserId);
+            boolean isActive = isUserActive(userId, refTime, freshness);
+            
+            log.debug("사용자 필터링: userId={}, excluded={}, active={}", userId, isExcluded, isActive);
+            
+            if (userId != null && !isExcluded && isActive) {
                 result.add(userId);
             }
         }
 
-        log.debug("윈도우 기반 사용자 검색 완료: 윈도우={}개, 전체={}명, 필터링후={}명", 
-                windowKeys.size(), allNearbyUsers.size(), result.size());
+        log.info("윈도우 기반 사용자 검색 완료: 윈도우={}개, 전체={}명, 필터링후={}명, 결과={}", 
+                windowKeys.size(), allNearbyUsers.size(), result.size(), result);
         
         return result;
     }

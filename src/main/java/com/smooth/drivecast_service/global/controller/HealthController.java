@@ -1,6 +1,7 @@
 package com.smooth.drivecast_service.global.controller;
 
 import com.smooth.drivecast_service.global.common.ApiResponse;
+import com.smooth.drivecast_service.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,6 +69,54 @@ public class HealthController {
         } catch (Exception e) {
             log.error("연결 통계 조회 실패", e);
             return ApiResponse.success("연결 통계 조회 실패: " + e.getMessage(), null);
+        }
+    }
+
+    @GetMapping("/test-pubsub")
+    public ApiResponse<Map<String, Object>> testPubSub() {
+        try {
+            String testChannel = "websocket:messages";
+            String testMessage = "{\"userId\":\"test-user\",\"destination\":\"/topic/test\",\"payload\":{\"message\":\"Pub/Sub 테스트\",\"timestamp\":\"" + LocalDateTime.now() + "\"},\"sourcePodId\":\"" + System.getenv("HOSTNAME") + "\"}";
+            
+            // Redis Pub/Sub으로 테스트 메시지 발행
+            messagingRedisTemplate.convertAndSend(testChannel, testMessage);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("channel", testChannel);
+            result.put("message", testMessage);
+            result.put("timestamp", LocalDateTime.now());
+            result.put("podId", System.getenv("HOSTNAME"));
+            
+            log.info("Pub/Sub 테스트 메시지 발행: channel={}", testChannel);
+            
+            return ApiResponse.success("Pub/Sub 테스트 메시지 발행 완료", result);
+        } catch (Exception e) {
+            log.error("Pub/Sub 테스트 실패", e);
+            return ApiResponse.error(CommonErrorCode.INTERNAL_SERVER_ERROR, "Pub/Sub 테스트 실패: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/test-incident")
+    public ApiResponse<Map<String, Object>> testIncidentAlert() {
+        try {
+            String testChannel = "websocket:messages";
+            String testMessage = "{\"userId\":\"test-user\",\"destination\":\"/topic/incident\",\"payload\":{\"type\":\"accident-nearby\",\"title\":\"전방 사고 발생!\",\"content\":\"근처 차량에서 큰 사고가 발생했습니다. 안전 운전하세요.\"},\"sourcePodId\":\"" + System.getenv("HOSTNAME") + "\"}";
+            
+            // 사고 알림 테스트 메시지 발행
+            messagingRedisTemplate.convertAndSend(testChannel, testMessage);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("channel", testChannel);
+            result.put("message", testMessage);
+            result.put("timestamp", LocalDateTime.now());
+            result.put("podId", System.getenv("HOSTNAME"));
+            
+            log.info("사고 알림 테스트 메시지 발행: channel={}", testChannel);
+            
+            return ApiResponse.success("사고 알림 테스트 메시지 발행 완료", result);
+        } catch (Exception e) {
+            log.error("사고 알림 테스트 실패", e);
+            return ApiResponse.error(CommonErrorCode.INTERNAL_SERVER_ERROR, "사고 알림 테스트 실패: " + e.getMessage());
         }
     }
 }

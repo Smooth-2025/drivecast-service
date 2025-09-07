@@ -106,6 +106,9 @@ public class IncidentEventHandler {
 
     private void sendToNearbyUsers(IncidentEvent event, String alertId, boolean excludeSelf) {
         try {
+            log.info("반경 내 사용자 검색 시작: type={}, lat={}, lng={}, radius={}m, excludeSelf={}", 
+                    event.type(), event.latitude(), event.longitude(), event.type().getRadiusMeters(), excludeSelf);
+            
             // 반경 내 사용자 검색 (Incident는 초단위 정확성 필수)
             Instant refTime = KoreanTimeUtil.parseKoreanTimeWithSeconds(event.timestamp());
             List<String> nearbyUsers = vicinityService.findUsers(
@@ -121,9 +124,13 @@ public class IncidentEventHandler {
             );
 
             if (nearbyUsers.isEmpty()) {
-                log.info("반경 내 사용자 없음: type={}, alertId={}", event.type(), alertId);
+                log.warn("반경 내 사용자 없음: type={}, alertId={}, lat={}, lng={}, radius={}m", 
+                        event.type(), alertId, event.latitude(), event.longitude(), event.type().getRadiusMeters());
                 return;
             }
+            
+            log.info("반경 내 사용자 검색 완료: type={}, alertId={}, 발견={}명, users={}", 
+                    event.type(), alertId, nearbyUsers.size(), nearbyUsers);
 
             // 매퍼 준비
             var mapper = incidentMessageMapperFactory.get(event.type().getValue());

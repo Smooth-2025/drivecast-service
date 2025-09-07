@@ -32,7 +32,7 @@ public class LocalConnectionManager {
                 userId, existingSessionId, sessionId);
         }
         
-        log.debug("연결 등록: userId={}, sessionId={}", userId, sessionId);
+        log.info("연결 등록: userId={}, sessionId={}", userId, sessionId);
     }
 
     /**
@@ -45,7 +45,7 @@ public class LocalConnectionManager {
             if (sessionId.equals(currentSessionId)) {
                 userSessions.remove(userId);
             }
-            log.debug("연결 해제: userId={}, sessionId={}", userId, sessionId);
+            log.info("연결 해제: userId={}, sessionId={}", userId, sessionId);
         }
     }
 

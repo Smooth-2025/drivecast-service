@@ -36,15 +36,15 @@ public class DrivingTraitService {
         try {
             var response = userTraitClient.getTraitsBulk(true);
 
-            if (response == null || !response.hasData()) {
+            if (response == null || response.getData() == null || !response.getData().hasData()) {
                 log.warn("벌크 성향 조회 결과 없음");
                 return Map.of();
             }
 
             var result = new HashMap<String, String>();
-            response.data().forEach(trait -> {
+            response.getData().data().forEach(trait -> {
                 if (trait.hasCharacter() && isValidCharacter(trait.character())) {
-                    result.put(trait.userId(), trait.character());
+                    result.put(String.valueOf(trait.userId()), trait.character());
                 } else if (trait.hasCharacter()) {
                     log.warn("유효하지 않은 성향 값: userId={}, character={}",
                             trait.userId(), trait.character());
@@ -52,7 +52,7 @@ public class DrivingTraitService {
             });
 
             log.info("벌크 성향 조회 완료: 전체={}명, 유효={}명, 생성시각={}",
-                    response.data().size(), result.size(), response.generatedAtUtc());
+                    response.getData().data().size(), result.size(), response.getData().generatedAtUtc());
             return result;
 
         } catch (FeignException.NotFound e) {
@@ -78,7 +78,7 @@ public class DrivingTraitService {
     /**
      * 단건 성향 조회 (실시간 폴백용)
      */
-    public String getTrait(String userId) {
+    private String getTrait(String userId) {
         if (userId == null || userId.isBlank()) {
             return null;
         }
@@ -86,12 +86,12 @@ public class DrivingTraitService {
         try {
             var response = userTraitClient.getTrait(userId);
 
-            if (response != null && response.hasCharacter()) {
-                if (isValidCharacter(response.character())) {
-                    log.debug("단건 성향 조회 성공: userId={}, character={}", userId, response.character());
-                    return response.character();
+            if (response != null && response.getData() != null && response.getData().hasCharacter()) {
+                if (isValidCharacter(response.getData().character())) {
+                    log.debug("단건 성향 조회 성공: userId={}, character={}", userId, response.getData().character());
+                    return response.getData().character();
                 } else {
-                    log.warn("유효하지 않은 성향 값: userId={}, character={}", userId, response.character());
+                    log.warn("유효하지 않은 성향 값: userId={}, character={}", userId, response.getData().character());
                     return null;
                 }
             }

@@ -1,5 +1,8 @@
 package com.smooth.drivecast_service.driving.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -8,7 +11,11 @@ import java.util.List;
  * 외부 API 응답: { "data": [...], "generatedAtUtc": "2025-08-26T19:05:00Z" }
  */
 public record TraitBulkResponseDto(
+        @JsonProperty("data")
         List<TraitResponseDto> data,
+
+        @JsonProperty("generatedAtUtc")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
         Instant generatedAtUtc
 ) {
 
@@ -17,12 +24,5 @@ public record TraitBulkResponseDto(
      */
     public boolean hasData() {
         return data != null && !data.isEmpty();
-    }
-
-    /**
-     * 데이터 개수 반환
-     */
-    public int size() {
-        return data != null ? data.size() : 0;
     }
 }

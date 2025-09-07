@@ -65,21 +65,24 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 if (accessor != null && accessor.getCommand() != null) {
                     switch (accessor.getCommand()) {
                         case CONNECT:
-                            // JWT 토큰에서 userId 추출하여 1인 1룸 설정
+                            // JWT 검증 강화: 실패 시 연결 거부
                             String token = accessor.getFirstNativeHeader("Authorization");
                             if (token == null) {
                                 token = accessor.getFirstNativeHeader("authorization");
                             }
-                            if (token != null && token.startsWith("Bearer ")) {
-                                try {
-                                    String userId = jwtTokenProvider.getUserId(token.substring(7));
-                                    accessor.setUser(new StompPrincipal(userId));
-                                    log.debug("WebSocket CONNECT - userId = {} (1인 1룸)", userId);
-                                } catch (Exception e) {
-                                    log.warn("WebSocket JWT 파싱 실패: {}", e.getMessage());
-                                }
-                            } else {
-                                log.debug("WebSocket CONNECT - Authorization 헤더 없음");
+                            
+                            if (token == null || !token.startsWith("Bearer ")) {
+                                log.warn("WebSocket CONNECT 거부: Authorization 헤더 없음");
+                                throw new IllegalArgumentException("Authorization header required");
+                            }
+                            
+                            try {
+                                String userId = jwtTokenProvider.getUserId(token.substring(7));
+                                accessor.setUser(new StompPrincipal(userId));
+                                log.debug("WebSocket CONNECT 성공: userId={}", userId);
+                            } catch (Exception e) {
+                                log.warn("WebSocket CONNECT 거부: JWT 검증 실패 - {}", e.getMessage());
+                                throw new IllegalArgumentException("Invalid JWT token");
                             }
                             break;
                         case DISCONNECT:

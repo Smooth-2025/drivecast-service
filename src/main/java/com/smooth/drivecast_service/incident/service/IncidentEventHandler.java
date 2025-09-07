@@ -67,13 +67,18 @@ public class IncidentEventHandler {
     }
 
     private void sendAccidentNotifications(IncidentEvent event, String alertId) {
+        log.info("사고 알림 처리 시작: type={}, userId={}, alertId={}", event.type(), event.userId(), alertId);
+        
         // 1. 본인에게 즉시 알림 (accident)
         if (event.userId() != null && !event.userId().isBlank()) {
+            log.info("본인 알림 전송 시작: userId={}, alertId={}", event.userId(), alertId);
             sendToSelf(event, alertId);
         }
 
         // 2. 반경 내 다른 운전자에게 즉시 알림 (accident-nearby)
+        log.info("반경 내 알림 전송 시작: alertId={}, excludeSelf=true", alertId);
         sendToNearbyUsers(event, alertId, true); // excludeSelf = true
+        log.info("반경 내 알림 전송 완료: alertId={}", alertId);
     }
 
     private void sendObstacleNotifications(IncidentEvent event, String alertId) {
@@ -106,24 +111,41 @@ public class IncidentEventHandler {
 
     private void sendToNearbyUsers(IncidentEvent event, String alertId, boolean excludeSelf) {
         try {
-            // 반경 내 사용자 검색 (Incident는 초단위 정확성 필수)
-            Instant refTime = KoreanTimeUtil.parseKoreanTimeWithSeconds(event.timestamp());
-            List<String> nearbyUsers = vicinityService.findUsers(
-                    event.latitude(),
-                    event.longitude(),
-                    event.type().getRadiusMeters(),
-                    !excludeSelf, // includeSelf = !excludeSelf
-                    30, // 30초 내 활동한 사용자
-                    3,  // 최대 3회 재시도
-                    List.of(100L, 200L, 500L), // 재시도 지연
-                    refTime,
-                    excludeSelf ? event.userId() : null // excludeUserId
-            );
-
-            if (nearbyUsers.isEmpty()) {
-                log.info("반경 내 사용자 없음: type={}, alertId={}", event.type(), alertId);
+            log.info("반경 내 사용자 검색 시작: type={}, lat={}, lng={}, radius={}m, excludeSelf={}", 
+                    event.type(), event.latitude(), event.longitude(), event.type().getRadiusMeters(), excludeSelf);
+            
+            // 반경 내 사용자 검색 (실시간 기준으로 변경)
+            Instant refTime = Instant.now(); // 실시간 기준으로 변경
+            log.info("VicinityService 호출 시작: refTime={}, excludeUserId={}, 원본시간={}", 
+                    refTime, excludeSelf ? event.userId() : null, event.timestamp());
+            
+            List<String> nearbyUsers;
+            try {
+                nearbyUsers = vicinityService.findUsers(
+                        event.latitude(),
+                        event.longitude(),
+                        event.type().getRadiusMeters(),
+                        !excludeSelf, // includeSelf = !excludeSelf
+                        300, // 5분 내 활동한 사용자 (주행 브로드캐스트와 동일)
+                        3,  // 최대 3회 재시도
+                        List.of(100L, 200L, 500L), // 재시도 지연
+                        refTime,
+                        excludeSelf ? event.userId() : null // excludeUserId
+                );
+                log.info("VicinityService 호출 완료: 결과={}명", nearbyUsers.size());
+            } catch (Exception e) {
+                log.error("VicinityService 호출 실패: type={}, alertId={}", event.type(), alertId, e);
                 return;
             }
+
+            if (nearbyUsers.isEmpty()) {
+                log.warn("반경 내 사용자 없음: type={}, alertId={}, lat={}, lng={}, radius={}m", 
+                        event.type(), alertId, event.latitude(), event.longitude(), event.type().getRadiusMeters());
+                return;
+            }
+            
+            log.info("반경 내 사용자 검색 완료: type={}, alertId={}, 발견={}명, users={}", 
+                    event.type(), alertId, nearbyUsers.size(), nearbyUsers);
 
             // 매퍼 준비
             var mapper = incidentMessageMapperFactory.get(event.type().getValue());

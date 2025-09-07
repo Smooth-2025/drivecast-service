@@ -192,18 +192,7 @@ public class DrivingBroadcastScheduler {
         return payload;
     }
 
-    /**
-     * 브로드캐스트 통계 조회
-     **/
-    public BroadcastStats getStats() {
-        var activeCount = sessionManager.getActiveUserCount();
-        return new BroadcastStats(activeCount);
-    }
 
-    /**
-     * 브로드캐스트 통계 정보
-     **/
-    public record BroadcastStats(long activeUserCount) {}
 
     /**
      * 주변 데이터 전체 정보

@@ -2,6 +2,7 @@ package com.smooth.drivecast_service.driving.feign;
 
 import com.smooth.drivecast_service.driving.dto.TraitResponseDto;
 import com.smooth.drivecast_service.driving.dto.TraitBulkResponseDto;
+import com.smooth.drivecast_service.global.common.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(
         name = "driving-analysis-service",
         url = "${app.client.driving-analysis-service.url}",
-        path = "/internal/v1"
+        path = "internal/v1"
 )
 public interface UserTraitClient {
 
@@ -21,11 +22,11 @@ public interface UserTraitClient {
      * 단건 성향 조회
      */
     @GetMapping("/characters/{userId}")
-    TraitResponseDto getTrait(@PathVariable String userId);
+    ApiResponse<TraitResponseDto> getTrait(@PathVariable String userId);
 
     /**
      * 벌크 성향 조회
      */
     @GetMapping("/characters")
-    TraitBulkResponseDto getTraitsBulk(@RequestParam(defaultValue = "true") boolean hasCharacter);
+    ApiResponse<TraitBulkResponseDto> getTraitsBulk(@RequestParam(defaultValue = "true") boolean hasCharacter);
 }

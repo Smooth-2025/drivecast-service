@@ -22,6 +22,12 @@ public class LocationWindowKeyGenerator {
     public static List<String> generateWindowKeys(Instant refUtc, int windowSec) {
         List<String> keys = new ArrayList<>();
 
+        // 미래 1초 포함 (람다 지연 대응)
+        Instant futureTime = refUtc.plusSeconds(1);
+        String futureKey = KoreanTimeUtil.toLocationKey(futureTime);
+        keys.add(futureKey);
+
+        // 현재부터 과거까지
         for(int i = 0; i < windowSec; i++) {
             Instant targetTime = refUtc.minusSeconds(i);
             String locationKey = KoreanTimeUtil.toLocationKey(targetTime);

@@ -1,5 +1,8 @@
 package com.smooth.drivecast_service.driving.dto;
 
+import com.smooth.drivecast_service.driving.exception.DrivingErrorCode;
+import com.smooth.drivecast_service.global.exception.BusinessException;
+
 /**
  * 지리적 좌표 DTO
  **/
@@ -10,10 +13,10 @@ public record DrivingCoordinate(double latitude, double longitude) {
      **/
     public DrivingCoordinate {
         if (!isValidLatitude(latitude)) {
-            throw new IllegalArgumentException("위도는 -90.0 ~ 90.0 범위여야 합니다: " + latitude);
+            throw new BusinessException(DrivingErrorCode.INVALID_DRIVING_TYPE, "위도는 -90.0 ~ 90.0 범위여야 합니다: " + latitude);
         }
         if (!isValidLongitude(longitude)) {
-            throw new IllegalArgumentException("경도는 -180.0 ~ 180.0 범위여야 합니다: " + longitude);
+            throw new BusinessException(DrivingErrorCode.INVALID_DRIVING_TYPE, "경도는 -180.0 ~ 180.0 범위여야 합니다: " + longitude);
         }
     }
 

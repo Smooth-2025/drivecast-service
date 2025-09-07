@@ -2,13 +2,12 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
-        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
-        ECR_REPOSITORY = "smooth/drivecast-service"
-        IMAGE_TAG = "${new Date().format('yyyyMMdd')}-${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
+        SERVICE_NAME = "Drivecast Service"
         AWS_DEFAULT_REGION = "ap-northeast-2"
-        K8S_NAMESPACE = "drivecast"
-        SECRET_NAME = "drivecast-service-secret"
+        ECR_REPOSITORY = "smooth/drivecast-service"
+        GITOPS_REPO = "https://github.com/Smooth-2025/smooth-gitops.git"
+        GITOPS_BRANCH = "main"
+        K8S_DEPLOYMENT_FILE = "manifests/drivecast/base/deployment.yaml"
     }
 
     options {
@@ -24,30 +23,37 @@ pipeline {
             }
         }
 
-        stage('Build with application.yaml') {
+        stage('Set Dynamic Env') {
             steps {
                 script {
-                    echo "----------------------------------------------------------------------------------"
-                    echo "[Building application with application.yaml]"
-                    withCredentials([file(credentialsId: 'drivecast-application-yml-file', variable: 'APPLICATION_YAML_FILE')]) {
-                        sh "cp ${APPLICATION_YAML_FILE} src/main/resources/application.yaml"
-                        sh './gradlew clean build'
-                    }
+                    env.AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    env.ECR_REGISTRY = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com"
+                    env.IMAGE_TAG = new Date().format('yyyyMMdd-HHmmss')
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Test') {
             steps {
                 script {
                     echo "----------------------------------------------------------------------------------"
-                    echo "[Building image: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
-                    def dockerImage = docker.build("${env.ECR_REPOSITORY}:${env.IMAGE_TAG}")
+                    echo "[Building application]"
+                    sh './gradlew clean build -Dspring.profiles.active=test'
                 }
             }
         }
 
-        stage('Push to ECR') {
+        stage('Docker Image Build') {
+            steps {
+                script {
+                    echo "----------------------------------------------------------------------------------"
+                    echo "[Building Docker image: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
+                    docker.build("${env.ECR_REPOSITORY}:${env.IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('ECR Push') {
             steps {
                 script {
                     echo "----------------------------------------------------------------------------------"
@@ -55,38 +61,31 @@ pipeline {
                     sh """
                         aws ecr get-login-password --region ${env.AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${env.ECR_REGISTRY}
                         docker tag ${env.ECR_REPOSITORY}:${env.IMAGE_TAG} ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}
-                        docker tag ${env.ECR_REPOSITORY}:${env.IMAGE_TAG} ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:latest
                         docker push ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}
-                        docker push ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:latest
                     """
                 }
             }
         }
 
-        stage('Create Kubernetes Secret') {
+        stage('Deployment Manifest Update') {
             steps {
-                script {
-                    echo "----------------------------------------------------------------------------------"
-                    echo "[Creating Kubernetes Secret for application.yaml]"
-                    withCredentials([
-                        file(credentialsId: 'drivecast-application-yml-file', variable: 'SECRET_FILE_PATH'),
-                        file(credentialsId: 'kubernetes-kubeconfig', variable: 'KUBE_CONFIG_PATH')
-                    ]) {
-                        withEnv(["KUBECONFIG=${KUBE_CONFIG_PATH}"]) {
-                            sh """
-                                kubectl cluster-info || exit 1
-                                kubectl get namespace ${env.K8S_NAMESPACE} || kubectl create namespace ${env.K8S_NAMESPACE}
+                echo "----------------------------------------------------------------------------------"
+                echo "[Updating GitOps repository with new image tag: ${env.IMAGE_TAG}]"
+                withCredentials([usernamePassword(credentialsId: 'github-access-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config user.email "mjalswn26@gmail.com"
+                        git config user.name "minju26"
 
-                                kubectl delete secret ${env.SECRET_NAME} -n ${env.K8S_NAMESPACE} --ignore-not-found=true
-                                kubectl create secret generic ${env.SECRET_NAME} \
-                                    --from-file=application.yaml=\${SECRET_FILE_PATH} \
-                                    -n ${env.K8S_NAMESPACE}
+                        # HTTPS clone with credentials
+                        git clone --branch ${GITOPS_BRANCH} https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/Smooth-2025/smooth-gitops.git gitops-repo
+                        cd gitops-repo
 
-                                kubectl get secret ${env.SECRET_NAME} -n ${env.K8S_NAMESPACE} -o yaml
-                                echo "Secret ${env.SECRET_NAME} created successfully in namespace ${env.K8S_NAMESPACE}"
-                            """
-                        }
-                    }
+                        sed -i "s|image: .*|image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}|g" ${K8S_DEPLOYMENT_FILE}
+
+                        git add ${K8S_DEPLOYMENT_FILE}
+                        git commit -m "feat: 도커 이미지 태그 업데이트(${ECR_REPOSITORY}:${IMAGE_TAG})"
+                        git push origin ${GITOPS_BRANCH}
+                    '''
                 }
             }
         }
@@ -96,33 +95,39 @@ pipeline {
         always {
             script {
                 echo "----------------------------------------------------------------------------------"
-                echo "[Cleaning up local Docker images and workspace.]"
                 sh """
                     docker rmi ${env.ECR_REPOSITORY}:${env.IMAGE_TAG} || true
                     docker rmi ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} || true
-                    docker rmi ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:latest || true
                 """
                 cleanWs()
-                echo "----------------------------------------------------------------------------------"
-                echo "[Sending build result notification to Discord...]"
-                def discordFooter = (currentBuild.currentResult == 'SUCCESS') ? "빌드 성공 ✅" : "빌드 실패 ❌"
+
+                def buildStatus = currentBuild.currentResult ?: 'SUCCESS'
+                def statusIcon = buildStatus == 'SUCCESS' ? '✅' : '❌'
+                def statusColor = buildStatus == 'SUCCESS' ? '#00FF00' : '#FF0000'
+                def buildDuration = currentBuild.durationString.replace(' and counting', '')
+
                 withCredentials([string(credentialsId: 'discord-webhook-url', variable: 'DISCORD_WEBHOOK_URL')]) {
-                    discordSend description: "Jenkins Job: ${env.JOB_NAME}",
-                        footer: discordFooter,
+                    discordSend(
+                        title: "${env.SERVICE_NAME} Jenkins Build ${buildStatus} ${statusIcon}",
+                        description: """
+                        **프로젝트**: ${env.JOB_NAME}
+                        **브랜치**: ${env.GIT_BRANCH ?: 'main'}
+                        **이미지**: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}
+                        **빌드 시간**: ${buildDuration}
+                        """.stripIndent(),
+                        footer: "Jenkins CI/CD Pipeline",
                         link: env.BUILD_URL,
-                        title: "Drivecast Service Build Result",
-                        webhookURL: DISCORD_WEBHOOK_URL
+                        webhookURL: DISCORD_WEBHOOK_URL,
+                        color: statusColor
+                    )
                 }
             }
         }
         success {
-            echo "----------------------------------------------------------------------------------"
-            echo "[Pipeline succeeded! Image pushed: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
-            echo "[Secret created: ${env.SECRET_NAME} in namespace: ${env.K8S_NAMESPACE}]"
+            echo "Pipeline succeeded! Image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}"
         }
         failure {
-            echo "----------------------------------------------------------------------------------"
-            echo "[Pipeline failed!]"
+            echo "Pipeline failed!"
         }
     }
 }

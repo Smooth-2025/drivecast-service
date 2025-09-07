@@ -27,21 +27,4 @@ public class JwtTokenProvider {
 
         return claims.getSubject();
     }
-
-    // test용 임시 token 발급
-    public String createTestToken(String userId) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
-        
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + jwtProperties.getExpiration());
-
-        return Jwts.builder()
-                .subject(userId)
-                .issuer("alert-service")
-                .issuedAt(now)
-                .expiration(expiration)
-                .claim("type", "test")
-                .signWith(key)
-                .compact();
-    }
 }

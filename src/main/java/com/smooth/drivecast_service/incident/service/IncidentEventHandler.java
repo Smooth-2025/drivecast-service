@@ -114,9 +114,10 @@ public class IncidentEventHandler {
             log.info("반경 내 사용자 검색 시작: type={}, lat={}, lng={}, radius={}m, excludeSelf={}", 
                     event.type(), event.latitude(), event.longitude(), event.type().getRadiusMeters(), excludeSelf);
             
-            // 반경 내 사용자 검색 (Incident는 초단위 정확성 필수)
-            Instant refTime = KoreanTimeUtil.parseKoreanTimeWithSeconds(event.timestamp());
-            log.info("VicinityService 호출 시작: refTime={}, excludeUserId={}", refTime, excludeSelf ? event.userId() : null);
+            // 반경 내 사용자 검색 (실시간 기준으로 변경)
+            Instant refTime = Instant.now(); // 실시간 기준으로 변경
+            log.info("VicinityService 호출 시작: refTime={}, excludeUserId={}, 원본시간={}", 
+                    refTime, excludeSelf ? event.userId() : null, event.timestamp());
             
             List<String> nearbyUsers;
             try {

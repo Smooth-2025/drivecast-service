@@ -3,11 +3,8 @@ pipeline {
 
     environment {
         SERVICE_NAME = "Drivecast Service"
-        AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
         AWS_DEFAULT_REGION = "ap-northeast-2"
-        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
         ECR_REPOSITORY = "smooth/drivecast-service"
-        IMAGE_TAG = "${new Date().format('yyyyMMdd-HHmmss')}"
         GITOPS_REPO = "https://github.com/Smooth-2025/smooth-gitops.git"
         GITOPS_BRANCH = "main"
         K8S_DEPLOYMENT_FILE = "manifests/drivecast/base/deployment.yaml"
@@ -26,6 +23,16 @@ pipeline {
             }
         }
 
+        stage('Set Dynamic Env') {
+            steps {
+                script {
+                    env.AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    env.ECR_REGISTRY = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com"
+                    env.IMAGE_TAG = new Date().format('yyyyMMdd-HHmmss')
+                }
+            }
+        }
+
         stage('Build & Test') {
             steps {
                 script {
@@ -41,7 +48,7 @@ pipeline {
                 script {
                     echo "----------------------------------------------------------------------------------"
                     echo "[Building image: ${env.ECR_REPOSITORY}:${env.IMAGE_TAG}]"
-                    def dockerImage = docker.build("${env.ECR_REPOSITORY}:${env.IMAGE_TAG}")
+                    docker.build("${env.ECR_REPOSITORY}:${env.IMAGE_TAG}")
                 }
             }
         }
@@ -70,14 +77,14 @@ pipeline {
                             git config user.email "mjalswn26@gmail.com"
                             git config user.name "minju26"
 
-                            git clone --branch ${GITOPS_BRANCH} https://${GITHUB_TOKEN}@github.com/Smooth-2025/smooth-gitops.git gitops-repo
+                            git clone --branch ${env.GITOPS_BRANCH} https://${GITHUB_TOKEN}@github.com/Smooth-2025/smooth-gitops.git gitops-repo
                             cd gitops-repo
 
-                            sed -i "s|image: .*|image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}|g" ${K8S_DEPLOYMENT_FILE}
+                            sed -i "s|image: .*|image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}|g" ${env.K8S_DEPLOYMENT_FILE}
 
-                            git add ${K8S_DEPLOYMENT_FILE}
+                            git add ${env.K8S_DEPLOYMENT_FILE}
                             git commit -m "feat: 도커 이미지 태그 업데이트(${env.ECR_REPOSITORY}:${env.IMAGE_TAG})"
-                            git push origin ${GITOPS_BRANCH}
+                            git push origin ${env.GITOPS_BRANCH}
                         """
                     }
                 }
@@ -89,14 +96,12 @@ pipeline {
         always {
             script {
                 echo "----------------------------------------------------------------------------------"
-                // 정리
                 sh """
                     docker rmi ${env.ECR_REPOSITORY}:${env.IMAGE_TAG} || true
                     docker rmi ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} || true
                 """
                 cleanWs()
 
-                // Discord 알림 설정
                 def buildStatus = currentBuild.currentResult ?: 'SUCCESS'
                 def statusIcon = buildStatus == 'SUCCESS' ? '✅' : '❌'
                 def statusColor = buildStatus == 'SUCCESS' ? '#00FF00' : '#FF0000'

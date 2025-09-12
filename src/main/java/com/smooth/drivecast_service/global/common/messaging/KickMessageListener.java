@@ -33,7 +33,7 @@ public class KickMessageListener implements MessageListener {
             String channel = new String(message.getChannel());
             String messageBody = new String(message.getBody());
             
-            log.debug("킥 신호 수신: channel={}, message={}", channel, messageBody);
+            log.debug("✅ 킥 신호 수신: channel={}, message={}", channel, messageBody);
             
             // 메시지 파싱
             GlobalConnectionManager.KickMessage kickMessage = 
@@ -43,21 +43,20 @@ public class KickMessageListener implements MessageListener {
             String currentPodId = podInfo.getPodId();
             
             if (!currentPodId.equals(kickMessage.targetPodId)) {
-                log.debug("다른 Pod 대상 킥 신호 무시: targetPod={}, currentPod={}", 
+                log.debug("⚠️ 다른 Pod 대상 킥 신호 무시: targetPod={}, currentPod={}",
                     kickMessage.targetPodId, currentPodId);
                 return;
             }
             
             // 자신이 보낸 킥 신호는 무시
             if (currentPodId.equals(kickMessage.sourcePodId)) {
-                log.debug("자신이 보낸 킥 신호 무시: userId={}, podId={}", 
+                log.debug("⚠️ 자신이 보낸 킥 신호 무시: userId={}, podId={}",
                     kickMessage.userId, currentPodId);
                 return;
             }
             
             // 로컬 연결이 있는 경우 강제 해제
             if (localConnectionManager.hasConnection(kickMessage.userId)) {
-                // Lazy initialization to avoid circular dependency
                 if (messagingTemplate == null) {
                     messagingTemplate = applicationContext.getBean(SimpMessagingTemplate.class);
                 }
@@ -65,17 +64,14 @@ public class KickMessageListener implements MessageListener {
                 // 사용자에게 킥 알림 전송
                 sendKickNotification(kickMessage.userId, kickMessage.reason);
                 
-                // 로컬 연결 해제 (세션은 자동으로 정리됨)
-                // LocalConnectionManager에서 직접 해제하지 않고, 클라이언트가 재연결하도록 유도
-                
-                log.info("사용자 킥 처리 완료: userId={}, reason={}", 
+                log.info("✅ 사용자 킥 처리 완료: userId={}, reason={}",
                     kickMessage.userId, kickMessage.reason);
             } else {
-                log.debug("킥 대상 사용자 로컬 연결 없음: userId={}", kickMessage.userId);
+                log.debug("⚠️ 킥 대상 사용자 로컬 연결 없음: userId={}", kickMessage.userId);
             }
             
         } catch (Exception e) {
-            log.error("킥 신호 처리 실패", e);
+            log.error("❌ 킥 신호 처리 실패", e);
         }
     }
     

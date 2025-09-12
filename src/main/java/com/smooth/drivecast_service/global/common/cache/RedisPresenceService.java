@@ -28,7 +28,7 @@ public class RedisPresenceService implements PresenceService {
 
         try {
             String key = buildKey(userId);
-            stringRedisTemplate.opsForValue().set(key, String.valueOf(when.toEpochMilli()));
+            stringRedisTemplate.opsForValue().set(key, String.valueOf(when.toEpochMilli()), Duration.ofHours(1));
             log.debug("사용자 접속 기록: userId={}, when={}", userId, when);
         } catch (Exception e) {
             log.error("사용자 접속 기록 실패: userId={}, when={}", userId, when, e);
@@ -52,11 +52,13 @@ public class RedisPresenceService implements PresenceService {
     @Override
     public boolean isFresh(String userId, Instant refTime, Duration skew) {
         return getLastSeen(userId)
-                .map(seen -> {
-                    // 시계 스큐를 고려한 범위 체크: [refTime-skew, refTime+skew]
-                    // 미래 시각 허용은 서버간 시계 차이를 고려한 설계
-                    return !seen.isBefore(refTime.minus(skew)) && !seen.isAfter(refTime.plus(skew));
-                })
+                .map(seen -> isWithinSkewRange(seen, refTime, skew))
                 .orElse(false);
+    }
+
+    private boolean isWithinSkewRange(Instant seen, Instant refTime, Duration skew) {
+        Instant minTime = refTime.minus(skew);
+        Instant maxTime = refTime.plus(skew);
+        return !seen.isBefore(minTime) && !seen.isAfter(maxTime);
     }
 }

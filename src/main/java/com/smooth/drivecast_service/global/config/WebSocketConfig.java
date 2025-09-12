@@ -19,6 +19,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import static com.smooth.drivecast_service.global.constants.GlobalConstants.WebSocket.HEARTBEAT_VALUES;
+
 @Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
@@ -50,7 +52,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue", "/topic")
                 .setTaskScheduler(brokerTaskScheduler())
-                .setHeartbeatValue(new long[]{30000, 30000});
+                .setHeartbeatValue(HEARTBEAT_VALUES);
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }

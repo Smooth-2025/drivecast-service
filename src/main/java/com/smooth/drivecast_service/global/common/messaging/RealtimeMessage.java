@@ -15,13 +15,6 @@ public class RealtimeMessage {
     private Object payload;
     private String sourcePodId; // 메시지를 발행한 Pod ID
     
-    public RealtimeMessage(String userId, String destination, Object payload) {
-        this.userId = userId;
-        this.destination = destination;
-        this.payload = payload;
-        // sourcePodId는 StompRealtimePublisher에서 설정
-    }
-    
     public RealtimeMessage(String userId, String destination, Object payload, String sourcePodId) {
         this.userId = userId;
         this.destination = destination;

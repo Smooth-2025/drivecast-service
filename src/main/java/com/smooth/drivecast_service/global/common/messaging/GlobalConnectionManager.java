@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import static com.smooth.drivecast_service.global.constants.GlobalConstants.Redis.*;
+
 /**
  * 파드 간 전역 WebSocket 연결 관리
  * 클러스터 전체에서 1인 1룸 보장
@@ -25,17 +27,13 @@ public class GlobalConnectionManager {
     private final ObjectMapper objectMapper;
     private final PodInfo podInfo;
     
-    private static final String GLOBAL_CONNECTION_KEY_PREFIX = "ws:global:connection:";
-    private static final String KICK_CHANNEL = "ws:system:kick";
-    private static final Duration CONNECTION_TTL = Duration.ofMinutes(5); // 5분 TTL
-    
     /**
      * 전역 연결 등록 및 중복 체크
      * @return 기존 연결이 있었다면 해당 Pod ID, 없었다면 null
      */
     public String registerGlobalConnection(String userId) {
         String currentPodId = podInfo.getPodId();
-        String connectionKey = GLOBAL_CONNECTION_KEY_PREFIX + userId;
+        String connectionKey = CONNECTION_KEY_PREFIX + userId;
         
         try {
             // 기존 연결 확인
@@ -65,7 +63,7 @@ public class GlobalConnectionManager {
      */
     public void unregisterGlobalConnection(String userId) {
         String currentPodId = podInfo.getPodId();
-        String connectionKey = GLOBAL_CONNECTION_KEY_PREFIX + userId;
+        String connectionKey = CONNECTION_KEY_PREFIX + userId;
         
         try {
             String registeredPodId = messagingRedisTemplate.opsForValue().get(connectionKey);
@@ -86,7 +84,7 @@ public class GlobalConnectionManager {
      */
     public void refreshConnection(String userId) {
         String currentPodId = podInfo.getPodId();
-        String connectionKey = GLOBAL_CONNECTION_KEY_PREFIX + userId;
+        String connectionKey = CONNECTION_KEY_PREFIX + userId;
         
         try {
             String registeredPodId = messagingRedisTemplate.opsForValue().get(connectionKey);
@@ -111,10 +109,10 @@ public class GlobalConnectionManager {
             String messageJson = objectMapper.writeValueAsString(kickMessage);
             
             messagingRedisTemplate.convertAndSend(KICK_CHANNEL, messageJson);
-            log.info("킥 신호 전송: userId={}, targetPod={}, reason={}", userId, targetPodId, reason);
+            log.info("✅ 킥 신호 전송: userId={}, targetPod={}, reason={}", userId, targetPodId, reason);
             
         } catch (Exception e) {
-            log.error("킥 신호 전송 실패: userId={}, targetPod={}", userId, targetPodId, e);
+            log.error("❌ 킥 신호 전송 실패: userId={}, targetPod={}", userId, targetPodId, e);
         }
     }
     

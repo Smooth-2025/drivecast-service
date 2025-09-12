@@ -33,7 +33,7 @@ public class KickMessageListener implements MessageListener {
             String channel = new String(message.getChannel());
             String messageBody = new String(message.getBody());
             
-            log.debug("✅ 킥 신호 수신: channel={}, message={}", channel, messageBody);
+            log.debug("====킥 신호 수신: channel={}, message={}", channel, messageBody);
             
             // 메시지 파싱
             GlobalConnectionManager.KickMessage kickMessage = 
@@ -43,14 +43,14 @@ public class KickMessageListener implements MessageListener {
             String currentPodId = podInfo.getPodId();
             
             if (!currentPodId.equals(kickMessage.targetPodId)) {
-                log.debug("⚠️ 다른 Pod 대상 킥 신호 무시: targetPod={}, currentPod={}",
+                log.debug("====다른 Pod 대상 킥 신호 무시: targetPod={}, currentPod={}",
                     kickMessage.targetPodId, currentPodId);
                 return;
             }
             
             // 자신이 보낸 킥 신호는 무시
             if (currentPodId.equals(kickMessage.sourcePodId)) {
-                log.debug("⚠️ 자신이 보낸 킥 신호 무시: userId={}, podId={}",
+                log.debug("====자신이 보낸 킥 신호 무시: userId={}, podId={}",
                     kickMessage.userId, currentPodId);
                 return;
             }
@@ -64,14 +64,14 @@ public class KickMessageListener implements MessageListener {
                 // 사용자에게 킥 알림 전송
                 sendKickNotification(kickMessage.userId, kickMessage.reason);
                 
-                log.info("✅ 사용자 킥 처리 완료: userId={}, reason={}",
+                log.info("====사용자 킥 처리 완료: userId={}, reason={}",
                     kickMessage.userId, kickMessage.reason);
             } else {
-                log.debug("⚠️ 킥 대상 사용자 로컬 연결 없음: userId={}", kickMessage.userId);
+                log.debug("====킥 대상 사용자 로컬 연결 없음: userId={}", kickMessage.userId);
             }
             
         } catch (Exception e) {
-            log.error("❌ 킥 신호 처리 실패", e);
+            log.error("====킥 신호 처리 실패", e);
         }
     }
     
@@ -83,10 +83,10 @@ public class KickMessageListener implements MessageListener {
             var kickNotification = new KickNotification("CONNECTION_REPLACED", reason);
             messagingTemplate.convertAndSendToUser(userId, "/queue/system", kickNotification);
             
-            log.debug("킥 알림 전송 완료: userId={}, reason={}", userId, reason);
+            log.debug("====킥 알림 전송 완료: userId={}, reason={}", userId, reason);
             
         } catch (Exception e) {
-            log.error("킥 알림 전송 실패: userId={}", userId, e);
+            log.error("====킥 알림 전송 실패: userId={}", userId, e);
         }
     }
     

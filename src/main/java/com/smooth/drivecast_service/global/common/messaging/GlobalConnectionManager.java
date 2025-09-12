@@ -109,10 +109,10 @@ public class GlobalConnectionManager {
             String messageJson = objectMapper.writeValueAsString(kickMessage);
             
             messagingRedisTemplate.convertAndSend(KICK_CHANNEL, messageJson);
-            log.info("✅ 킥 신호 전송: userId={}, targetPod={}, reason={}", userId, targetPodId, reason);
+            log.info("====킥 신호 전송: userId={}, targetPod={}, reason={}", userId, targetPodId, reason);
             
         } catch (Exception e) {
-            log.error("❌ 킥 신호 전송 실패: userId={}, targetPod={}", userId, targetPodId, e);
+            log.error("====킥 신호 전송 실패: userId={}, targetPod={}", userId, targetPodId, e);
         }
     }
     

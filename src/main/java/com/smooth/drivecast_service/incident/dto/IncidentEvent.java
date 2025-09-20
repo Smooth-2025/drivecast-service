@@ -6,11 +6,6 @@ import com.smooth.drivecast_service.global.exception.BusinessException;
 import com.smooth.drivecast_service.global.util.ValidationUtil;
 import com.smooth.drivecast_service.incident.exception.IncidentErrorCode;
 
-/**
- * 사고/장애물 도메인 전용 이벤트
- * - API 호환성을 위한 JsonAlias 지원
- * - 불변 객체로 데이터 무결성 보장
- **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record IncidentEvent(
         @JsonAlias({"eventType", "type"}) IncidentType type,
@@ -31,12 +26,10 @@ public record IncidentEvent(
             throw new BusinessException(IncidentErrorCode.MISSING_TIMESTAMP);
         }
 
-        // Incident는 초단위 정확성이 중요하므로 엄격한 검증 적용
         if (!ValidationUtil.hasValidIncidentTimestampFormat(timestamp)) {
             throw new BusinessException(IncidentErrorCode.INVALID_TIMESTAMP_FORMAT);
         }
 
-        // 타입별 특수 검증
         if (type == IncidentType.ACCIDENT && (accidentId == null || accidentId.isBlank())) {
             throw new BusinessException(IncidentErrorCode.MISSING_ACCIDENT_ID);
         }

@@ -13,10 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * 성향 API 서비스
- * 외부 API 호출 및 예외 처리
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,14 +20,10 @@ public class DrivingTraitService {
 
     private final UserTraitClient userTraitClient;
 
-    // 유효한 성향 enum 값들 (검증용)
     private static final Set<String> VALID_CHARACTERS = Set.of(
             "DOLPHIN", "LION", "MEERKAT", "CAT"
     );
 
-    /**
-     * 벌크 성향 조회 (워밍 캐시용)
-     */
     public Map<String, String> exportTraits() {
         try {
             var response = userTraitClient.getTraitsBulk(true);
@@ -46,8 +38,7 @@ public class DrivingTraitService {
                 if (trait.hasCharacter() && isValidCharacter(trait.character())) {
                     result.put(String.valueOf(trait.userId()), trait.character());
                 } else if (trait.hasCharacter()) {
-                    log.warn("유효하지 않은 성향 값: userId={}, character={}",
-                            trait.userId(), trait.character());
+                    log.warn("유효하지 않은 성향 값: userId={}, character={}", trait.userId(), trait.character());
                 }
             });
 
@@ -75,9 +66,6 @@ public class DrivingTraitService {
         }
     }
 
-    /**
-     * 단건 성향 조회 (실시간 폴백용)
-     */
     private String getTrait(String userId) {
         if (userId == null || userId.isBlank()) {
             return null;
@@ -117,9 +105,6 @@ public class DrivingTraitService {
         }
     }
 
-    /**
-     * 여러 사용자 성향 조회 (순수 API 호출만)
-     */
     public Map<String, String> getTraitsFromApi(List<String> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
@@ -138,9 +123,6 @@ public class DrivingTraitService {
         return result;
     }
 
-    /**
-     * 성향 값 유효성 검증
-     */
     private boolean isValidCharacter(String character) {
         return character != null && VALID_CHARACTERS.contains(character.toUpperCase());
     }

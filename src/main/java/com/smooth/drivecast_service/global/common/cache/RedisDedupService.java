@@ -41,20 +41,6 @@ public class RedisDedupService implements DedupService {
     }
 
     @Override
-    public boolean isAlreadyProcessed(String key) {
-        if (key == null || key.isBlank()) {
-            return false;
-        }
-
-        try {
-            return stringRedisTemplate.hasKey(key);
-        } catch (Exception e) {
-            log.error("중복 확인 실패: key={}", key, e);
-            return false;
-        }
-    }
-
-    @Override
     public void storeAccidentInfo(String accidentId, String accidentData, Duration ttl) {
         if (accidentId == null || accidentId.isBlank() || accidentData == null) {
             log.warn("사고 정보 저장 실패: accidentId={}, accidentData null={}", 

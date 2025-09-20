@@ -38,12 +38,10 @@ public class IncidentEventHandler {
         try {
             var alertId = IdGenerators.generateIncidentAlertId(event);
 
-            // 사고 정보 캐시 저장 추가
             storeAccidentInfo(event, alertId);
-            // 1. 즉시 알림 전송
+
             sendImmediateNotifications(event, alertId);
 
-            // 2. 반복 알림 시작 (비동기)
             incidentRepeatNotifier.startRepeatNotification(event, alertId);
 
             log.info("사고 이벤트 처리 완료: type={}, alertId={}", event.type(), alertId);
@@ -68,21 +66,18 @@ public class IncidentEventHandler {
 
     private void sendAccidentNotifications(IncidentEvent event, String alertId) {
         log.info("사고 알림 처리 시작: type={}, userId={}, alertId={}", event.type(), event.userId(), alertId);
-        
-        // 1. 본인에게 즉시 알림 (accident)
+
         if (event.userId() != null && !event.userId().isBlank()) {
             log.info("본인 알림 전송 시작: userId={}, alertId={}", event.userId(), alertId);
             sendToSelf(event, alertId);
         }
 
-        // 2. 반경 내 다른 운전자에게 즉시 알림 (accident-nearby)
         log.info("반경 내 알림 전송 시작: alertId={}, excludeSelf=true", alertId);
         sendToNearbyUsers(event, alertId, true); // excludeSelf = true
         log.info("반경 내 알림 전송 완료: alertId={}", alertId);
     }
 
     private void sendObstacleNotifications(IncidentEvent event, String alertId) {
-        // 반경 내 모든 운전자에게 즉시 알림 (obstacle)
         sendToNearbyUsers(event, alertId, false); // excludeSelf = false
     }
 
@@ -96,7 +91,6 @@ public class IncidentEventHandler {
                 return;
             }
 
-            // 중복 방지
             if (dedupService.markAlertIfFirst(alertId, event.userId())) {
                 mapper.get().map(context).ifPresent(message -> {
                     publisher.toUser(event.userId(), IncidentDestinations.INCIDENT_ALERT, message);
@@ -113,9 +107,8 @@ public class IncidentEventHandler {
         try {
             log.info("반경 내 사용자 검색 시작: type={}, lat={}, lng={}, radius={}m, excludeSelf={}", 
                     event.type(), event.latitude(), event.longitude(), event.type().getRadiusMeters(), excludeSelf);
-            
-            // 반경 내 사용자 검색 (실시간 기준으로 변경)
-            Instant refTime = Instant.now(); // 실시간 기준으로 변경
+
+            Instant refTime = Instant.now();
             log.info("VicinityService 호출 시작: refTime={}, excludeUserId={}, 원본시간={}", 
                     refTime, excludeSelf ? event.userId() : null, event.timestamp());
             
@@ -125,12 +118,12 @@ public class IncidentEventHandler {
                         event.latitude(),
                         event.longitude(),
                         event.type().getRadiusMeters(),
-                        !excludeSelf, // includeSelf = !excludeSelf
-                        300, // 5분 내 활동한 사용자 (주행 브로드캐스트와 동일)
-                        3,  // 최대 3회 재시도
-                        List.of(100L, 200L, 500L), // 재시도 지연
+                        !excludeSelf,
+                        300,
+                        3,
+                        List.of(100L, 200L, 500L),
                         refTime,
-                        excludeSelf ? event.userId() : null // excludeUserId
+                        excludeSelf ? event.userId() : null
                 );
                 log.info("VicinityService 호출 완료: 결과={}명", nearbyUsers.size());
             } catch (Exception e) {
@@ -147,14 +140,12 @@ public class IncidentEventHandler {
             log.info("반경 내 사용자 검색 완료: type={}, alertId={}, 발견={}명, users={}", 
                     event.type(), alertId, nearbyUsers.size(), nearbyUsers);
 
-            // 매퍼 준비
             var mapper = incidentMessageMapperFactory.get(event.type().getValue());
             if (mapper.isEmpty()) {
                 log.warn("지원하지 않는 사고 타입: {}", event.type());
                 return;
             }
 
-            // 각 사용자에게 알림 전송 (per-recipient 예외 처리)
             int sentCount = 0;
             for (String userId : nearbyUsers) {
                 try {
@@ -169,7 +160,6 @@ public class IncidentEventHandler {
                     }
                 } catch (Exception e) {
                     log.warn("사용자별 알림 전송 실패 (스킵): userId={}, alertId={}", userId, alertId, e);
-                    // 해당 사용자만 스킵하고 다음 사용자로 진행
                 }
             }
 

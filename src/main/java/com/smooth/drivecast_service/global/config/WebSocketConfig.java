@@ -65,7 +65,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 if (accessor != null && accessor.getCommand() != null) {
                     switch (accessor.getCommand()) {
                         case CONNECT:
-                            // JWT 검증 강화: 실패 시 연결 거부
                             String token = accessor.getFirstNativeHeader("Authorization");
                             if (token == null) {
                                 token = accessor.getFirstNativeHeader("authorization");

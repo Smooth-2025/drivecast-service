@@ -38,8 +38,7 @@ public class HealthController {
     public ApiResponse<Map<String, Object>> readiness() {
         Map<String, Object> readinessInfo = new HashMap<>();
         boolean isReady = true;
-        
-        // 메시징 Redis 연결 확인
+
         try {
             messagingRedisTemplate.opsForValue().set("health:check", "ok");
             messagingRedisTemplate.delete("health:check");
@@ -77,8 +76,7 @@ public class HealthController {
         try {
             String testChannel = "websocket:messages";
             String testMessage = "{\"userId\":\"test-user\",\"destination\":\"/topic/test\",\"payload\":{\"message\":\"Pub/Sub 테스트\",\"timestamp\":\"" + LocalDateTime.now() + "\"},\"sourcePodId\":\"" + System.getenv("HOSTNAME") + "\"}";
-            
-            // Redis Pub/Sub으로 테스트 메시지 발행
+
             messagingRedisTemplate.convertAndSend(testChannel, testMessage);
             
             Map<String, Object> result = new HashMap<>();
@@ -101,8 +99,7 @@ public class HealthController {
         try {
             String testChannel = "websocket:messages";
             String testMessage = "{\"userId\":\"test-user\",\"destination\":\"/topic/incident\",\"payload\":{\"type\":\"accident-nearby\",\"title\":\"전방 사고 발생!\",\"content\":\"근처 차량에서 큰 사고가 발생했습니다. 안전 운전하세요.\"},\"sourcePodId\":\"" + System.getenv("HOSTNAME") + "\"}";
-            
-            // 사고 알림 테스트 메시지 발행
+
             messagingRedisTemplate.convertAndSend(testChannel, testMessage);
             
             Map<String, Object> result = new HashMap<>();

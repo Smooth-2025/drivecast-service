@@ -11,9 +11,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Redis Pub/Sub 메시지를 수신하여 로컬 WebSocket 연결로 전달하는 리스너
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,21 +31,17 @@ public class PubSubMessageListener implements MessageListener {
             String messageBody = new String(message.getBody());
             
             log.debug("Pub/Sub 메시지 수신: channel={}, message={}", channel, messageBody);
-            
-            // 메시지 파싱
+
             RealtimeMessage realtimeMessage = objectMapper.readValue(messageBody, RealtimeMessage.class);
-            
-            // 자신이 발행한 메시지는 무시 (중복 전송 방지)
+
             String currentPodId = podInfo.getPodId();
             if (currentPodId.equals(realtimeMessage.getSourcePodId())) {
                 log.debug("자신이 발행한 메시지 무시: userId={}, podId={}", 
                     realtimeMessage.getUserId(), currentPodId);
                 return;
             }
-            
-            // 로컬 연결이 있는 경우에만 전송
+
             if (connectionManager.hasConnection(realtimeMessage.getUserId())) {
-                // Lazy initialization to avoid circular dependency
                 if (messagingTemplate == null) {
                     messagingTemplate = applicationContext.getBean(SimpMessagingTemplate.class);
                 }

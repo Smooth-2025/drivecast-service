@@ -40,13 +40,11 @@ public class VicinityUserFinder {
             return List.of();
         }
 
-        // 윈도우 키 방식 사용 (driving과 동일한 방식)
         List<String> windowKeys = LocationWindowKeyGenerator.generateDefaultWindowKeys(refTime);
         log.debug("윈도우 키 생성: {}", windowKeys);
 
         Set<String> allNearbyUsers = new HashSet<>();
-        
-        // 각 윈도우 키에서 사용자 검색
+
         for (String locationKey : windowKeys) {
             List<String> usersInWindow = searchNearbyUsers(locationKey, latitude, longitude, radiusMeters);
             log.debug("윈도우 검색 결과: key={}, 발견={}명, users={}", locationKey, usersInWindow.size(), usersInWindow);
@@ -59,7 +57,6 @@ public class VicinityUserFinder {
             return List.of();
         }
 
-        // 필터링 및 신선도 체크
         List<String> result = new ArrayList<>();
         for (String userId : allNearbyUsers) {
             boolean isExcluded = excludeUserId != null && userId.equals(excludeUserId);

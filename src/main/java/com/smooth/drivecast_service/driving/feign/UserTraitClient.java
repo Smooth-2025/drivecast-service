@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * 유저 서비스 성향 조회 Feign 클라이언트
- */
 @FeignClient(
         name = "driving-analysis-service",
         url = "${app.client.driving-analysis-service.url}",
@@ -18,15 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 )
 public interface UserTraitClient {
 
-    /**
-     * 단건 성향 조회
-     */
     @GetMapping("/characters/{userId}")
     ApiResponse<TraitResponseDto> getTrait(@PathVariable String userId);
 
-    /**
-     * 벌크 성향 조회
-     */
     @GetMapping("/characters")
     ApiResponse<TraitBulkResponseDto> getTraitsBulk(@RequestParam(defaultValue = "true") boolean hasCharacter);
 }

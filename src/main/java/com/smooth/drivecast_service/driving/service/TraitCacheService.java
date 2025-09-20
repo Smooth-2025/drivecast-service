@@ -14,10 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 성향 캐시 서비스
- * 핫/워밍 캐시 관리 및 새벽 워밍 작업 수행
- **/
 @Slf4j
 @Service
 public class TraitCacheService {
@@ -31,9 +27,6 @@ public class TraitCacheService {
         this.drivingTraitService = drivingTraitService;
     }
 
-    /**
-     * 새벽 1시 성향 워밍 캐시 실행
-     **/
     @Scheduled(cron = "0 */10 * * * *", zone = "Asia/Seoul")
     public void warmupCache() {
         var startTime = System.currentTimeMillis();
@@ -58,9 +51,6 @@ public class TraitCacheService {
         }
     }
 
-    /**
-     * 여러 사용자 성향 조회 (캐시 우선)
-     **/
     public Map<String, String> getTraitsForUsers(List<String> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
@@ -69,11 +59,9 @@ public class TraitCacheService {
         var startTime = System.currentTimeMillis();
         var result = new HashMap<String, String>();
 
-        // 1. 핫 캐시 조회
         var hotResults = getFromHotCache(userIds);
         result.putAll(hotResults);
 
-        // 2. 핫 미스 → 워밍 캐시 조회
         var hotMissUsers = userIds.stream()
                 .filter(userId -> !result.containsKey(userId))
                 .toList();
@@ -82,23 +70,19 @@ public class TraitCacheService {
             var warmResults = getFromWarmCache(hotMissUsers);
             result.putAll(warmResults);
 
-            // 워밍 히트를 핫 캐시에 복사
             if (!warmResults.isEmpty()) {
                 saveToHotCache(warmResults);
             }
         }
 
-        // 3. 여전히 미스 → API 조회
         var apiMissUsers = userIds.stream()
                 .filter(userId -> !result.containsKey(userId))
                 .toList();
 
         if (!apiMissUsers.isEmpty()) {
-            // 순환 참조 해결: 직접 API 호출
             var apiResults = drivingTraitService.getTraitsFromApi(apiMissUsers);
             result.putAll(apiResults);
 
-            // API 결과를 핫 캐시에 저장
             if (!apiResults.isEmpty()) {
                 saveToHotCache(apiResults);
             }
@@ -114,9 +98,6 @@ public class TraitCacheService {
         return result;
     }
 
-    /**
-     * 핫 캐시 멀티겟 조회
-     **/
     private Map<String, String> getFromHotCache(List<String> userIds) {
         var result = new HashMap<String, String>();
 
@@ -146,9 +127,6 @@ public class TraitCacheService {
         return result;
     }
 
-    /**
-     * 워밍 캐시 멀티겟 조회
-     **/
     private Map<String, String> getFromWarmCache(List<String> userIds) {
         var result = new HashMap<String, String>();
 
@@ -178,16 +156,12 @@ public class TraitCacheService {
         return result;
     }
 
-    /**
-     * 핫 캐시에 배치 저장
-     ***/
     public void saveToHotCache(Map<String, String> traits) {
         if (traits == null || traits.isEmpty()) {
             return;
         }
 
         try {
-            // 기존 패턴에 맞게 개별 호출로 변경
             traits.forEach((userId, character) -> {
                 try {
                     var key = DrivingVicinityPolicy.TRAIT_HOT_PREFIX + userId;
@@ -205,16 +179,12 @@ public class TraitCacheService {
         }
     }
 
-    /**
-     * 워밍 캐시에 배치 저장
-     **/
     public void saveToWarmCache(Map<String, String> traits) {
         if (traits == null || traits.isEmpty()) {
             return;
         }
 
         try {
-            // 기존 패턴에 맞게 개별 호출로 변경
             traits.forEach((userId, character) -> {
                 try {
                     var key = DrivingVicinityPolicy.TRAIT_WARM_PREFIX + userId;
@@ -232,16 +202,10 @@ public class TraitCacheService {
         }
     }
 
-    /**
-     * 캐시 값 생성 (JSON 형태)
-     **/
     private String createCacheValue(String character) {
         return "{\"v\":1,\"character\":\"%s\"}".formatted(character);
     }
 
-    /**
-     * 캐시 값에서 character 파싱
-     **/
     private String parseCharacter(String cacheValue) {
         try {
             if (cacheValue.contains("\"character\":")) {
@@ -255,41 +219,5 @@ public class TraitCacheService {
             log.warn("캐시 값 파싱 실패: value={}", cacheValue);
         }
         return null;
-    }
-
-    /**
-     * 수동 워밍 실행 (운영/테스트용)
-     **/
-    public void manualWarmup() {
-        log.info("수동 성향 워밍 캐시 실행");
-        warmupCache();
-    }
-
-    /**
-     * 캐시 통계 조회
-     **/
-    public CacheStats getCacheStats() {
-        try {
-            var hotKeys = redisTemplate.keys(DrivingVicinityPolicy.TRAIT_HOT_PREFIX + "*");
-            var warmKeys = redisTemplate.keys(DrivingVicinityPolicy.TRAIT_WARM_PREFIX + "*");
-
-            var hotCount = hotKeys != null ? hotKeys.size() : 0;
-            var warmCount = warmKeys != null ? warmKeys.size() : 0;
-
-            return new CacheStats(hotCount, warmCount);
-
-        } catch (Exception e) {
-            log.warn("캐시 통계 조회 실패: {}", e.getMessage());
-            return new CacheStats(0, 0);
-        }
-    }
-
-    /**
-     * 캐시 통계 정보
-     **/
-    public record CacheStats(int hotCacheCount, int warmCacheCount) {
-        public int totalCount() {
-            return hotCacheCount + warmCacheCount;
-        }
     }
 }

@@ -6,10 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * 벌크 성향 조회 응답 DTO
- * 외부 API 응답: { "data": [...], "generatedAtUtc": "2025-08-26T19:05:00Z" }
- */
 public record TraitBulkResponseDto(
         @JsonProperty("data")
         List<TraitResponseDto> data,
@@ -19,9 +15,6 @@ public record TraitBulkResponseDto(
         Instant generatedAtUtc
 ) {
 
-    /**
-     * 데이터가 있는지 확인
-     */
     public boolean hasData() {
         return data != null && !data.isEmpty();
     }

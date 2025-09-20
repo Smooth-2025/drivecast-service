@@ -26,14 +26,12 @@ public class SessionEventListener {
         if (accessor.getUser() instanceof StompPrincipal principal) {
             String userId = principal.getName();
             String sessionId = accessor.getSessionId();
-            
-            // 1. 전역 연결 등록 (파드 간 1인 1룸 보장)
+
             String existingPodId = globalConnectionManager.registerGlobalConnection(userId);
             if (existingPodId != null) {
                 log.info("파드 간 중복 연결 처리: userId={}, 기존Pod={}", userId, existingPodId);
             }
-            
-            // 2. 로컬 연결 등록
+
             localConnectionManager.addConnection(userId, sessionId);
             
             log.debug("WebSocket 연결 등록 완료: userId={}, sessionId={}", userId, sessionId);
@@ -45,13 +43,10 @@ public class SessionEventListener {
         String sessionId = event.getSessionId();
         
         if (sessionId != null) {
-            // 1. 로컬 연결에서 userId 조회
             String userId = localConnectionManager.getUserBySession(sessionId);
-            
-            // 2. 로컬 연결 해제
+
             localConnectionManager.removeConnection(sessionId);
-            
-            // 3. 전역 연결 해제
+
             if (userId != null) {
                 globalConnectionManager.unregisterGlobalConnection(userId);
             }

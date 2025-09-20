@@ -15,9 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * 윈도우 기반 지리 검색 어댑터:
- * 순수 redis 지리 검색 로직만 포함*/
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,9 +23,6 @@ public class WindowGeoSearchAdapter {
     @Qualifier("valkeyRedisTemplate")
     private final RedisTemplate<String, String> valkeyRedisTemplate;
 
-    /**
-     * 여러 키에서 반경 검색 후 합집합 반환
-     **/
     public Set<String> searchAcrossKeys(List<String> locationKeys, DrivingCoordinate center, int radiusMeters) {
         if (locationKeys == null || locationKeys.isEmpty() || center == null) {
             return Set.of();

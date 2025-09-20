@@ -35,7 +35,6 @@ public class RedisVicinityService implements VicinityService {
                                   Instant refTime,
                                   String excludeUserId) {
 
-        // includeSelf가 false면 excludeUserId 설정
         String actualExcludeUserId = includeSelf ? null : excludeUserId;
         Duration freshness = Duration.ofSeconds(freshnessSec);
 

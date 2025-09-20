@@ -10,10 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 윈도우 기반 위치 조회 어댑터:
- * 순수 redis 위치 조회 로직만 포함
- **/
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -22,9 +18,6 @@ public class WindowLocationAdapter {
     @Qualifier("valkeyRedisTemplate")
     private final RedisTemplate<String, String> valkeyRedisTemplate;
 
-    /**
-     * 여러 키에서 사용자 위치 조회
-     **/
     public Optional<DrivingCoordinate> findUserLocation(List<String> locationKeys, String userId) {
         if (locationKeys == null || locationKeys.isEmpty() || userId == null) {
             return Optional.empty();
@@ -32,7 +25,6 @@ public class WindowLocationAdapter {
 
         for(String key : locationKeys) {
             try {
-                // 키 존재 여부 확인
                 boolean keyExists = valkeyRedisTemplate.hasKey(key);
                 log.debug("키 존재 확인: key={}, exists={}", key, keyExists);
                 

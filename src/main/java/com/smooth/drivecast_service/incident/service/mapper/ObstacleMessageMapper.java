@@ -21,8 +21,6 @@ public class ObstacleMessageMapper implements IncidentMessageMapper {
     @Override
     public Optional<IncidentResponseDto> map(IncidentMappingContext context) {
         try {
-            var event = context.getEvent();
-
             return Optional.of(new IncidentResponseDto(
                     "obstacle",
                     Map.of(

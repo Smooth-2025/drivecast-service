@@ -43,13 +43,11 @@ public class StompRealtimePublisher implements RealtimePublisher {
         }
 
         try {
-            // 1. 로컬 연결 확인 및 직접 전송
             if (connectionManager.hasConnection(userId)) {
                 messagingTemplate.convertAndSendToUser(userId, destination, payload);
                 log.debug("로컬 실시간 메시지 전송 성공: userId={}, destination={}", userId, destination);
             }
-            
-            // 2. 항상 다른 Pod으로도 Pub/Sub 메시지 발행 (사용자가 어느 Pod에 있을지 모르므로)
+
             RealtimeMessage message = new RealtimeMessage(userId, destination, payload, podInfo.getPodId());
             String messageJson = objectMapper.writeValueAsString(message);
             messagingRedisTemplate.convertAndSend(WEBSOCKET_CHANNEL, messageJson);

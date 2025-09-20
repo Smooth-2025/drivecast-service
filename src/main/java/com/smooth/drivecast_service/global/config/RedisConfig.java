@@ -17,7 +17,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-    // Valkey 설정값
     @Value("${valkey.host:localhost}")
     private String valkeyHost;
 
@@ -30,7 +29,6 @@ public class RedisConfig {
     @Value("${valkey.password:}")
     private String valkeyPassword;
 
-    // 기본 Redis 설정값 (내부 캐시용)
     @Value("${spring.data.redis.host:localhost}")
     private String redisHost;
 
@@ -43,7 +41,6 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String redisPassword;
 
-    // 메시징용 Redis 설정값 (배포/개발 환경 모두 지원)
     @Value("${messaging.redis.host:${messaging-redis.host:localhost}}")
     private String messagingRedisHost;
 
@@ -56,9 +53,6 @@ public class RedisConfig {
     @Value("${messaging.redis.password:${messaging-redis.password:}}")
     private String messagingRedisPassword;
 
-    /**
-     * 기본 Redis 연결 팩토리 (내부 캐시용)
-     */
     @Bean("redisConnectionFactory")
     @Primary
     public JedisConnectionFactory redisConnectionFactory() {
@@ -72,9 +66,6 @@ public class RedisConfig {
         return new JedisConnectionFactory(config);
     }
 
-    /**
-     * 기본 Redis용 StringRedisTemplate (내부 캐시용 - lastseen 등)
-     */
     @Bean("stringRedisTemplate")
     @Primary
     public org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate() {
@@ -84,9 +75,6 @@ public class RedisConfig {
         return template;
     }
 
-    /**
-     * 기본 RedisTemplate (Spring Boot 자동 설정 대체)
-     */
     @Bean
     public RedisTemplate<Object, Object> redisTemplate() {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
@@ -102,7 +90,6 @@ public class RedisConfig {
         return template;
     }
 
-    // Valkey용 별도 설정
     @Bean
     public JedisConnectionFactory valkeyConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -130,7 +117,6 @@ public class RedisConfig {
         return template;
     }
 
-    // 메시징용 Redis 설정
     @Bean
     public JedisConnectionFactory messagingRedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -157,11 +143,9 @@ public class RedisConfig {
             com.smooth.drivecast_service.global.common.messaging.KickMessageListener kickMessageListener) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(messagingRedisConnectionFactory());
-        
-        // WebSocket 메시지 채널
+
         container.addMessageListener(messageListener, new ChannelTopic("websocket:messages"));
-        
-        // 킥 시스템 채널
+
         container.addMessageListener(kickMessageListener, new ChannelTopic("ws:system:kick"));
         
         return container;

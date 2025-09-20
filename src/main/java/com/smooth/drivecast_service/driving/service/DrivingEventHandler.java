@@ -70,9 +70,6 @@ public class DrivingEventHandler {
         }
     }
 
-    /**
-     * 활성 세션 업데이트
-     **/
     private void updateActiveSession(DrivingEvent event) {
         try {
             switch (event.type()) {
@@ -85,7 +82,6 @@ public class DrivingEventHandler {
                     log.debug("활성 세션 제거: userId={}", event.userId());
                 }
                 default -> {
-                    // 다른 이벤트는 세션 상태 변경 없음
                 }
             }
         } catch (Exception e) {
